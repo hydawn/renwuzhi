@@ -50,7 +50,7 @@ function start_transposition(raw_data, user_name_list, index_checked) {
         continue
       }
       let user_name = user_name_list[user_index]
-      answer_list.push(`${user_name}: ${user_answer}`)
+      answer_list.push(`${user_name}： ${user_answer}`)
     }
     let question = raw_data[0][question_index]
     after_traspo.push([question].concat(answer_list))
