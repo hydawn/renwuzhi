@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<!--
+Copyright 2023 dawn
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+用了别人的代码，也用人家的licence咯
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>人物志转换 v0.0.1</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+  </head>
+  <body>
+
+    <h2>运行之前</h2>
+    <div class="preface">
+      如果你某一步做错了，比如选了你不该选的，请刷新页面重新上传<br>
+      但是如果你一不小心刷新页面了，哈哈哈那你只能重新上传了<br>
+      <br>
+      一般来说，当你点击某个按钮之后发现网页一点反应也没有，可能就是出错了<br>
+      这时候你可以按Ctrl+Shift+I打开console看看出了什么问题，
+      或者联系我，如果你不知道我是谁，我的联系方式在网页最下面
+    </div>
+
+    <br>
+    <br>
+    <br>
+
+    <h2>开始转换！</h2>
+    <div class="input">
+      首先你需要上传人物志问卷结果文件，现在仅支持xls(x)格式<br>
+      如果你已经把表格文件下载到了本地，就点击下面的 <strong>从本地导入</strong><br>
+      如果你手头有一个（问卷星结果）文件下载链接，就点击下面的 <strong>从文件链接导入</strong><br>
+      其实，如果文件链接下载失败（你发现网页半天没反应），你还是得手动下载然后从本地导入
+
+      <details>
+        <summary><strong>从本地导入</strong></summary>
+        <div class="input-loadfile">
+        <h2>上传xls(x)文件</h2>
+        注意数据需在第一表格里，但是一般都会在第一表格里所以其实你不需要注意<br>
+        <input type="file" id="file_input" name="name 有什么用呢？ 点击这里上传文件 HIT IT!">
+        </div>
+      </details>
+
+      <details>
+        <summary><strong>从文件链接导入</strong></summary>
+        <div id="url_input_div">
+        <h2>把导出excel网址贴到这里 （问卷星下载地址什么的）</h2>
+        <!-- debug -->
+        <!-- <input type="text" id="url_input" value="http://localhost:10880/241183365_0_宁海人物志收集_19_19.xlsx"> -->
+        <input type="text" id="url_input" value="">
+        <button type="button" onclick="get_file_url()">贴好了</button>
+        </div>
+      </details>
+
+    </div>
+    <p id="html_selector_field"></p>
+    <div id="transposition_result_field">
+      <div id="transposition_result_text_div"></div>
+      <div id="transposition_result_file_div"></div>
+    </div>
+
+    <!-- <script lang="javascript" src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script> -->
+    <!-- <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script> -->
+    <script src="xlsx.full.min.js"></script>
+    <!-- <script src="processcsv.js"></script> -->
+    <script src="queryfile.js"></script>
+    <script src="loadfile.js"></script>
+    <script src="process_xlsx.js"></script>
+    <br>
+
+
+    <h2>开始聊天！</h2>
+    <div class="聊天">
+      <p>
+      有的朋友可能会考虑数据安全问题。这里所谓的上传是指上传到你的浏览器中，并不会上传到网络上，所有的数据处理都在浏览器中进行，所以这个程序断网也可以使用<br>
+      不过呢，如果你不是很懂，其实我再怎么说你也不知道我对你的数据做了什么，你只需要相信给你程序的那个人，那个人再往前相信给他程序的人，最终相信我。
+      </p>
+      <p>
+      不相信我你也没招，嘿嘿嘿
+      </p>
+      <p>
+      我发现，这种方法真的很原始，但是很简单，很通用，支持各种平台。活得也很久。<br>
+      小程序没了解过不想写，网站可以搭但谁维护呢？服务器不续费了怎么办？域名无了怎么办？<br>
+      刚开始的python脚本，我也写了一个教程，教大家怎么用python，可能是我没有大力推广，最后看教程的人并不多。<br>
+      后来我考虑，要不打包成一个可执行文件。windows上很简单，各种版本的windows都能兼容，<br>
+      不过怎么打包成mac上的app呢？有点懒得实验了。<br>
+      不过正巧我最近也想看看javascript，于是干脆把python脚本扔了，重新写一个“html程序”，能用就行。<br>
+      然后就是注意xlsx.full.min.js是别人家的代码。<br>
+      官网是这个<a href="https://sheetjs.com/">https://sheetjs.com/</a><br>
+      apache licence我也没研究过，大家自己用用也无所谓<br>
+      </p>
+      <p>
+      写这个程序有一种“古法酿造”的感觉，
+      放着现代的框架不用非得要玩原始
+      </p>
+      <p>
+      有局call我，无事退朝
+      </p>
+      <p>
+      微信19965909565
+      </p>
+    </div>
+
+  </body>
+</html>
