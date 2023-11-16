@@ -202,7 +202,7 @@ function remove_useless_columns(raw_data, useless_header) {
 
 function present_choices(html_prompt, array_option, default_checked_index) {
   // var prompt_list = [html_prompt, '<form>', '<button id="checkButton">确定</button>']
-  var prompt_list = [html_prompt, '<br>', '<button id="checkButton">确定</button><br>']
+  var prompt_list = [html_prompt, '<br>', '<button id="checkButton">确定/下一步</button><br>']
   for (let i = 0; i < array_option.length; i++) {
     let checked = ''
     if (default_checked_index.includes(i)) {
