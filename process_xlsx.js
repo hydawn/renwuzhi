@@ -38,10 +38,10 @@ function workbook_to_raw_data(workbook) {
   return raw_data
 }
 
-function start_transposition(raw_data, user_name_list, index_checked) {
+function start_transposition(raw_data, user_name_list, question_index_checked) {
   let after_traspo = [] // array of array
   let empty_result = ['', '(空)', null]
-  for (let question_index of index_checked) {
+  for (let question_index of question_index_checked) {
     // now, gather answers from users
     let answer_list = []
     for (let user_index = 0; user_index < user_name_list.length; user_index++) {
@@ -93,8 +93,8 @@ function provide_copy_and_download(transpo_result_text) {
   // URL.revokeObjectURL(url);
 }
 
-function after_select_question_column_start_transposition(raw_data, user_name_list, index_checked) {
-  console.log(`question selected:${index_checked.map(i => raw_data[0][i]).join('\n')}`)
+function after_select_question_column_start_transposition(raw_data, user_name_list, question_index_checked) {
+  console.log(`question selected:${question_index_checked.map(i => raw_data[0][i]).join('\n')}`)
   // let lookbehind = '想对'
   // let lookbahead = '说'
   // let html_prompt_list = [
@@ -108,7 +108,7 @@ function after_select_question_column_start_transposition(raw_data, user_name_li
   //   '那算你会玩，自己转置吧',
   // ]
   // start transposition
-  transposition_result = start_transposition(raw_data, user_name_list, index_checked)
+  transposition_result = start_transposition(raw_data, user_name_list, question_index_checked)
   // present that to html and generate a file to download
   // generate a text area
   transpo_result_text = transposition_result.map(i => i.join('\n')).join('\n\n\n')
