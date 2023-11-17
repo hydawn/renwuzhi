@@ -140,8 +140,7 @@ function after_select_question_column_select_format_prompt(raw_data, user_name_l
     '<details><summary>自定义格式 -- html富文本编辑小教程（点击展开）</summary>',
     '自定义格式也就是手打html，在文字左右添加tag就可以呈现出各种效果',
     '比如输入 <pre>&lt;b>名字&lt;/b>说：</pre> 就会最后呈现出把大家的名字加粗的效果：<b>名字</b>说：，b是bold的意思',
-    '这里可以见到，“说”并没有被加粗，只有被<code>&lt;b></code>和<code>&lt;/b></code>包围住文字被加粗了',
-    '“名字”这两个字在最终的输出中会被替换成大家提交的名字',
+    '这里可以见到，“说”并没有被加粗，只有被<code>&lt;b></code>和<code>&lt;/b></code>包围住的文字被加粗了',
     '如果你用<code>&lt;i></code>和<code>&lt;/i></code>就会有斜体的效果：<i>名字</i>说： i是斜体italic，同理，u是下划线underline',
     '<code>b i u</code>之间也可以互相组合一层套一层，比如<pre>&lt;i>&lt;b>一些文字&lt;/b>&lt;/i></pre>效果就是：',
     '<i><b>一些文字</b></i>',
@@ -151,8 +150,8 @@ function after_select_question_column_select_format_prompt(raw_data, user_name_l
     '你可以把文中的green换成任何颜色，颜色(color)和背景颜色(background-color)可以是英文单词，也可以是各种格式的rgb',
     '关于颜色的更加详细的文档可以看<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/color">这里</a>或者<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/background-color">背景色</a>',
     '注意这里面的冒号，尖括号，分号，双引号，斜线等字符全部都要是英文标点',
-    '有兴趣的同学可以实验一下，没有兴趣的同学随便选一个格式直接点击下一步吧',
-    '<small>别忘了（如果你想）输入冒号</small>',
+    '有兴趣的同学可以实验一下',
+    '<small>别忘了输入冒号（如果你想的话）</small>',
     '</details>',
     '<small>无敌小天使什么是逗你玩的不要真的选了效果很不理想</small>',
   ]
@@ -222,7 +221,7 @@ function after_select_question_column_start_transposition(raw_data, user_name_li
   epilog_list = [
     '好了，这就是全部的内容了，有什么建议或者需求都可以提给我（微信在最网页下面），心情好就给你实现!',
     '警告，不要在手机上尝试把复制的人物志转换内容粘贴到微信里面（我的手机，系统桌面直接卡死了，你也可以逝世）,',
-    '如果你想保存富文本，可以直接按Ctrl-S用你的浏览器吧整个网页保存下来，以后该html文件在任何地方打开你都可以看见下面的富文本',
+    '如果你想保存富文本，可以直接按Ctrl-S用你的浏览器把整个网页保存下来，以后该html文件在任何地方打开你都可以看见下面的富文本',
     '推荐大家检查一下转换后的文字，防bug',
   ]
   document.getElementById('html_selector_field').innerHTML = '<h3>转换结果</h3>' + epilog_list.join('<br>')
