@@ -34,6 +34,20 @@ for i in soup.find_all('link'):
         i['href'] = f"data:{itype};base64,{base64.b64encode(file.read()).decode()}"
 
 
+for i in soup.find_all('img'):
+    src = i.get('src')
+    if not src:
+        continue
+    itype = i.get('type')
+    path = urlparse(src).path
+    if not itype:
+        itype = f"image/{urlparse(src).path.rsplit('.', maxsplit=1)[-1]}"
+    else:
+        del i['type']
+    with open(src, 'rb') as file:
+        i['src'] = f"data:{itype};base64,{base64.b64encode(file.read()).decode()}"
+
+
 name_list = sys.argv[1].rsplit('.', maxsplit=1)
 
 with open(f'{name_list[0]}_contained.{name_list[1]}', 'w', encoding='utf-8') as file:
