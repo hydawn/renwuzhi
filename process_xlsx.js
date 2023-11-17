@@ -1,3 +1,5 @@
+// TODO: 全选、反选、全不选 -- 没用的玩意儿
+
 // on xlsx file load
 function on_file_load(event) {
   process_file_content(event.target.result);
@@ -38,7 +40,7 @@ function workbook_to_raw_data(workbook) {
   return raw_data
 }
 
-function start_transposition(raw_data, user_name_list, question_index_checked) {
+function start_transposition(raw_data, user_name_list, question_index_checked, name_format_string) {
   let after_traspo = [] // array of array
   let empty_result = ['', '(空)', null]
   for (let question_index of question_index_checked) {
@@ -50,7 +52,8 @@ function start_transposition(raw_data, user_name_list, question_index_checked) {
         continue
       }
       let user_name = user_name_list[user_index]
-      answer_list.push(`${user_name}： ${user_answer}`)
+      let name_prompt = name_format_string.replace(/名字/, user_name)
+      answer_list.push(`${name_prompt}${user_answer}`)
     }
     let question = raw_data[0][question_index]
     after_traspo.push([question].concat(answer_list))
@@ -93,7 +96,60 @@ function provide_copy_and_download(transpo_result_text) {
   // URL.revokeObjectURL(url);
 }
 
-function after_select_question_column_start_transposition(raw_data, user_name_list, question_index_checked) {
+// onclick handler to make checkboxes behave like single choice
+function html_selector_single_select_onclick(clicked_checkbox) {
+  const checkboxes = document.querySelectorAll('input[type="checkbox"][name="html_selector_options"]');
+  checkboxes.forEach(function(checkbox) {
+    if (checkbox !== clicked_checkbox) {
+      checkbox.checked = false; // Uncheck other checkboxes
+      // checkbox.style.display = 'block';
+    }
+  });
+  // document.querySelectorAll('div[type="magic_type_seEx"]').forEach(function(div) { div.style.display = 'block'})
+}
+
+var select_format_full_choice = false;
+function after_select_question_column_select_format_prompt(raw_data, user_name_list, question_index_checked) {
+  let html_prompt_list = [
+    // '这些选项是用来自定义输出的，请静下心来感受这些选项的意义',
+    // '如果你没感受到也没关系，我经常看点子谜语人作者不讲人话最后什么也没看懂，很难说这人是不是故作高深',
+    '点 确定/下一步 就可以生成出最后的作品了',
+  ]
+  let choices = [ 'From名字：' ]
+  let default_choice = [0]
+  if (select_format_full_choice) {
+    choices = choices.concat([
+      'From 名字：',
+      '名字：',
+      '来自你的名字无敌小天使==> ',
+      '<input type="text" id="customInput" size="48" placeholder="输入一些包含“名字”这两个字的文字，别忘了（如果你想）输入冒号">'
+    ])
+    default_choice = []
+  }
+  // hidden = choices.slice(1).map(i => `<div type="magic_type_seEx" style="hidden">${i}</div>`)
+  html_selector(html_prompt_list.join('<br>'), choices.map(i => i + '<br>'), default_choice, 'html_selector_single_select_onclick', function(index_checked) {
+    // the last one, choices.length is special
+    let name_format_string = '名字：'
+    if (index_checked.length > 1) {
+      alert(`这里只能选择一个选项，你选择了多个哟：${index_checked}，拥有自定义分布的自定义格式化输出暂时还不支持，重选吧`)
+      return
+    } else if (index_checked.length == 0) {
+      alert('你不选我帮你选？')
+      select_format_full_choice = true;
+      after_select_question_column_select_format_prompt(raw_data, user_name_list, question_index_checked)
+      return
+    }
+    if (choices.length == 1 || index_checked[0] != choices.length - 1) {
+      name_format_string = choices[index_checked[0]]
+    } else {
+      var customInput = document.getElementById('customInput');
+      name_format_string = customInput.value
+    }
+    after_select_question_column_start_transposition(raw_data, user_name_list, question_index_checked, name_format_string)
+  })
+}
+
+function after_select_question_column_start_transposition(raw_data, user_name_list, question_index_checked, name_format_string) {
   console.log(`question selected:${question_index_checked.map(i => raw_data[0][i]).join('\n')}`)
   // let lookbehind = '想对'
   // let lookbahead = '说'
@@ -108,7 +164,7 @@ function after_select_question_column_start_transposition(raw_data, user_name_li
   //   '那算你会玩，自己转置吧',
   // ]
   // start transposition
-  transposition_result = start_transposition(raw_data, user_name_list, question_index_checked)
+  transposition_result = start_transposition(raw_data, user_name_list, question_index_checked, name_format_string)
   // present that to html and generate a file to download
   // generate a text area
   transpo_result_text = transposition_result.map(i => i.join('\n')).join('\n\n\n')
@@ -155,8 +211,11 @@ function after_name_column_select_question_column(raw_data, index_checked) {
     html_prompt_list.join('<br>'),
     raw_data[0],
     Array.from({ length: raw_data[0].length }, (_, index) => index),
+    '',
     function(index_checked) {
-      after_select_question_column_start_transposition(raw_data, name_list, index_checked)
+      // TODO: no index checked is not allowed!
+      // after_select_question_column_start_transposition(raw_data, name_list, index_checked)
+      after_select_question_column_select_format_prompt(raw_data, name_list, index_checked)
     }
   )
 }
@@ -174,7 +233,7 @@ function process_xlsx_workbook(workbook) {
     '接下来我们需要人工一下智能，因为我需要知道哪一列（虽然一般是第一列）',
     '请在如下选项中勾选询问填问卷者名字的那个问题，因为程序不识字，所以要你告诉我',
   ]
-  html_selector(html_prompt_list.join('<br>'), raw_data[0], [0], function(index_checked){
+  html_selector(html_prompt_list.join('<br>'), raw_data[0], [0], '', function(index_checked) {
     after_name_column_select_question_column(raw_data, index_checked);
   });
   // JSON.stringify(raw_data[0])
@@ -200,7 +259,8 @@ function remove_useless_columns(raw_data, useless_header) {
   return raw_data
 }
 
-function present_choices(html_prompt, array_option, default_checked_index) {
+// might be a stupid choice to insert function names
+function present_choices(html_prompt, array_option, default_checked_index, on_click_func_name) {
   // var prompt_list = [html_prompt, '<form>', '<button id="checkButton">确定</button>']
   var prompt_list = [html_prompt, '<br>', '<button id="checkButton">确定/下一步</button><br>']
   for (let i = 0; i < array_option.length; i++) {
@@ -212,7 +272,11 @@ function present_choices(html_prompt, array_option, default_checked_index) {
     if (i % 5 == 4) {
       breakline = '<br>'
     }
-    prompt_list.push(`<label><input type="checkbox" value="${i}" ${checked}>${array_option[i]}</label>${breakline}`)
+    let on_click = `onclick="${on_click_func_name}(this)"`
+    if (on_click_func_name.length == 0) {
+      on_click = ''
+    }
+    prompt_list.push(`<label><input type="checkbox" name="html_selector_options" value="${i}" ${on_click} ${checked}>${array_option[i]}</label>${breakline}`)
   }
   prompt_list.push('<br>')
   // prompt_list.push('</form>')
@@ -221,10 +285,10 @@ function present_choices(html_prompt, array_option, default_checked_index) {
 
 // return a array if index telling me which element is selected,
 // don't return element themselves, return index
-function html_selector(html_prompt, array_option, default_checked_index, on_submit) {
-  present_choices(html_prompt, array_option, default_checked_index)
+function html_selector(html_prompt, array_option, default_checked_index, on_click_func_name, on_submit) {
+  present_choices(html_prompt, array_option, default_checked_index, on_click_func_name)
 
-  const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+  const checkboxes = document.querySelectorAll('input[type="checkbox"][name="html_selector_options"]');
   const checkButton = document.getElementById("checkButton");
 
   checkButton.addEventListener("click", function () {
