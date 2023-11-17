@@ -1,4 +1,5 @@
 // TODO: 全选、反选、全不选 -- 没用的玩意儿
+// TODO: match http:// and deselect that column automatically
 
 // on xlsx file load
 function on_file_load(event) {
