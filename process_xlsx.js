@@ -44,6 +44,11 @@ function workbook_to_raw_data(workbook) {
 function start_transposition(raw_data, user_name_list, question_index_checked, name_format_string) {
   let after_traspo = [] // array of array
   let empty_result = ['', '(空)', null]
+  function excape_html_string(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+  }
   for (let question_index of question_index_checked) {
     // now, gather answers from users
     let answer_list = []
@@ -54,7 +59,7 @@ function start_transposition(raw_data, user_name_list, question_index_checked, n
       }
       let user_name = user_name_list[user_index]
       let name_prompt = name_format_string.replace(/名字/, user_name)
-      answer_list.push(`${name_prompt}${user_answer}`)
+      answer_list.push(`${name_prompt}${excape_html_string(user_answer)}`)
     }
     let question = raw_data[0][question_index]
     after_traspo.push([question].concat(answer_list))
