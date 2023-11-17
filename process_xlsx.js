@@ -266,6 +266,7 @@ function after_name_column_select_question_column(raw_data, index_checked) {
 function process_xlsx_workbook(workbook) {
   let raw_data = workbook_to_raw_data(workbook);
   console.log('xlsx load completed, will not display import div again')
+  document.getElementById('import_file_details').style.display = 'none'
 
   let useless_header = ["序号", "提交答卷时间", "所用时间", "来源", "来源详情", "来自IP"]
   remove_useless_columns(raw_data, useless_header); // oh, pass by reference

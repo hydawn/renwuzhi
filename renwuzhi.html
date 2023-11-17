@@ -39,12 +39,12 @@ limitations under the License.
     <br>
 
     <h2>开始转换！</h2>
-    <div class="input">
+    <div class="content">
+    <div class="input" id="import_file_details">
       首先你需要上传人物志问卷结果文件，现在仅支持xls(x)格式<br>
       如果你已经把表格文件下载到了本地，就点击下面的 <b>从本地导入</b><br>
       如果你手头有一个（问卷星结果）文件下载链接，就点击下面的 <b>从文件链接导入</b><br>
       其实，如果文件链接下载失败（你发现网页半天没反应），你还是得手动下载然后从本地导入
-
       <details>
         <summary><b>从本地导入</b></summary>
         <div class="input-loadfile">
@@ -64,8 +64,8 @@ limitations under the License.
         <button type="button" onclick="get_file_url()">贴好了</button>
         </div>
       </details>
-
     </div>
+
     <p id="html_selector_field"></p>
     <div class="trans_result" id="transposition_result_field">
       <div id="transposition_result_text_div"></div>
