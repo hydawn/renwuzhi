@@ -182,10 +182,12 @@ function after_select_question_column_select_format_prompt(raw_data, user_name_l
   let html_prompt_list = [
     // '这些选项是用来自定义输出的，请静下心来感受这些选项的意义',
     // '如果你没感受到也没关系，我经常看点子谜语人作者不讲人话最后什么也没看懂，很难说这人是不是故作高深',
+    '除非你真的很感兴趣，否则不要看下面的教程，直接点击下一步就行了',
+    '<details><summary>自定义格式 -- html富文本编辑小教程（点击展开）</summary>',
     '选一个你想要的格式，或者在下面的输入框中自定义格式（预览功能还没做出来呢，“上一步”按钮也是）',
     '下面的格式中，所有的“名字”这两个字都会被替换成大家问卷中填写的名字',
     '转换后的<b>转换结果 -- 富文本</b>中你可以复制带格式的文字粘贴到秀米或者word中',
-    '<details><summary>自定义格式 -- html富文本编辑小教程（点击展开）</summary>',
+    '实际上秀米的带格式粘贴容易出问题，所以默认的粘贴模式都是纯文本粘贴，不想折腾的就别折腾了，老实复制粘贴吧',
     '自定义格式也就是手打html，在文字左右添加tag就可以呈现出各种效果',
     '比如输入 <pre>&lt;b>名字&lt;/b>说：</pre> 就会最后呈现出把大家的名字加粗的效果：<b>名字</b>说：，b是bold的意思',
     '这里可以见到，“说”并没有被加粗，只有被<code>&lt;b></code>和<code>&lt;/b></code>包围住的文字被加粗了',
@@ -207,12 +209,11 @@ function after_select_question_column_select_format_prompt(raw_data, user_name_l
   let default_choice = [0]
   if (select_format_full_choice) {
     choices = choices.concat([
-      // 'From 名字：',
-      '<b>名字</b>：',
-      '来自你的<b>名字</b>无敌小天使📣', //  which is &#128227;
+      '名字：',
+      '来自你的名字无敌小天使📣', //  which is &#128227;
       '你的自定义格式：<input type="text" id="customInput" size="48" value="<span style=&quot;color:rebeccapurple;&quot;><b>名字</b></span>：">',
     ])
-    default_choice = [1]
+    // default_choice = [1]
   }
   // hidden = choices.slice(1).map(i => `<div type="magic_type_seEx" style="hidden">${i}</div>`)
   html_selector(
