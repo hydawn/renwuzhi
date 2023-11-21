@@ -60,10 +60,10 @@ function start_transposition(raw_data, user_name_list, question_index_checked, n
       }
       let user_name = user_name_list[user_index]
       let name_prompt = name_format_string.replace(/名字/, user_name)
-      answer_list.push(`${name_prompt}${excape_html_string(user_answer)}`)
+      answer_list.push([name_prompt, excape_html_string(user_answer)])
     }
     let question = raw_data[0][question_index]
-    after_traspo.push([question].concat(answer_list))
+    after_traspo.push([[question, '']].concat(answer_list))
   }
   return after_traspo
 }
