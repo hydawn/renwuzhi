@@ -74,31 +74,79 @@ function copy_input_text(id) {
   document.execCommand("copy");
 }
 
+function copy_innerhtml_with_id(paragraph_id) {
+  console.log(`copy_innerhtml_with_id called with id ${paragraph_id}`)
+  var para = document.getElementById(paragraph_id)
+  navigator.clipboard.writeText(para.innerHTML).then(
+    ()=>{
+      console.log('复制成功')
+    },
+    () => {
+      alert('复制失败，请手动选择复制')
+    }
+  )
+}
+
+function unescape_html(html_text) {
+  return (new DOMParser()).parseFromString(html_text, 'text/html').body.textContent
+}
+
+function create_pure_text_html(transposition_result) {
+  // transposition_result is a list of list of list
+  // create pure_text with controls
+  function create_html_control(paragraph_list, para_index) {
+    // create copy except for the first one
+    if (paragraph_list.length == 1) {
+      alert(`没有一个人给${paragraph_list[0]}写人物志，领压别忘了处理`)
+      console.log(`没有一个人给${paragraph_list[0]}写人物志，领压别忘了处理`)
+      return ''
+    }
+    let pre_id = `paragraph_id_${para_index}`
+    let result_html = paragraph_list[0][0] + `<br><button onclick="copy_innerhtml_with_id('${pre_id}')">点击复制这一段</button>`
+    preformatted = `<pre id="${pre_id}" style="display:none">`
+    // "<button onclick=\"copy_input_text('transposition_result_textarea')\">点击复制</button>",
+    for (i = 1; i < paragraph_list.length; i++) {
+      preformatted += `${unescape_html(paragraph_list[i].join(''))}\n`
+    }
+    preformatted += '</pre>'
+    after_formatted = '<div>' + paragraph_list.slice(1).map(i => unescape_html(i[0]) + i[1]).join('<br>') + '</div>'
+    result_html += after_formatted + preformatted
+    return result_html
+  }
+  result_array = []
+  for (j = 0; j < transposition_result.length; j++) {
+    result_array.push(create_html_control(transposition_result[j], j))
+  }
+  return result_array.join('<br><br>')
+}
+
 function provide_copy_and_download(transpo_result_list) {
   // text result
-  transpo_result_rich_text = transposition_result.map(i => i.join('<br>')).join('<br><br><br>')
+  console.log(transposition_result)
+  pure_text_html = create_pure_text_html(transposition_result)
+  pure_text = [
+    '<details open>',
+    '<summary><b>转换结果</b></summary>',
+    // "<button onclick=\"copy_input_text('transposition_result_textarea')\">点击复制</button>",
+    '<br>',
+    // '<textarea readonly id="transposition_result_textarea" rows="56" cols="128">',
+    `${pure_text_html}`,
+    // '</textarea>',
+    '</details>',
+  ]
+  transpo_result_rich_text = transposition_result.map(i => i.map(j => j.join('')).join('<br>')).join('<br><br><br>')
   rich_text = [
     '<details id="rich_text_result">',
-    '<summary><b>转换结果 -- 富文本（点击展开）</b></summary>',
+    '<summary><b>转换结果 -- 富文本</b></summary>',
     `${transpo_result_rich_text}`,
     '</details>',
   ]
-  transpo_result_html = transposition_result.map(i => i.join('\n')).join('\n\n\n')
-  transpo_result_pure_text = (new DOMParser()).parseFromString(transpo_result_html, 'text/html').body.textContent
-  pure_text = [
-    '<details>',
-    '<summary><b>转换结果 -- 纯文本（点击展开）</b></summary>',
-    "<button onclick=\"copy_input_text('transposition_result_textarea')\">点击复制</button>",
-    '<br>',
-    '<textarea readonly id="transposition_result_textarea" rows="16" cols="48">',
-    `${transpo_result_pure_text}`,
-    '</textarea>',
-    '</details>',
-  ]
-  inner_html_list = rich_text.concat(pure_text)
+  inner_html_list = pure_text.concat(rich_text)
   // dangerous injection I know, but it wouldn't affect me
   document.getElementById('transposition_result_text_div').innerHTML = inner_html_list.join('');
 
+  transpo_result_html = transposition_result.map(i => i.join('\n')).join('\n\n\n')
+  transpo_result_pure_text = unescape_html(transpo_result_html)
   // Create a Blob from the text string
   const blob = new Blob([transpo_result_pure_text], { type: 'text/plain' });
   // Create a URL for the Blob
