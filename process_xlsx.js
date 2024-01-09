@@ -30,15 +30,30 @@ function process_file_content(file_content) {
 function workbook_to_raw_data(workbook) {
   // work on the first sheet
   const first_sheet = workbook.Sheets[workbook.SheetNames[0]]
-  // this is funny
-  // const table = XLSX.utils.sheet_to_html(worksheet);
-  // setHTML(table);
 
-  const raw_data = XLSX.utils.sheet_to_json(first_sheet, {header: 1});
-  // const raw_html = XLSX.utils.sheet_to_html(first_sheet);
-  // document.querySelector("p").innerHTML = JSON.stringify(raw_data, null, "\t");
-  // document.querySelector("p").innerHTML = raw_html
-  // console.log(raw_data);
+  var sheet_range = first_sheet['!ref']
+  const sheet_row_match = sheet_range.match(/[\d]+$/)
+  if (!sheet_row_match) {
+    alert(`解析表格范围失败 [${sheet_range}]`);
+    return null;
+  }
+  const sheet_row = parseInt(sheet_row_match[0])
+  to_json_args = {header: 1}
+  const max_len = 300
+  // sometimes is very slow and takes up a ton of memory because sheet row is
+  // way too big (like 1048576)
+  // because you deleted some rows in the file
+  if (sheet_row > max_len) {
+    sheet_range = sheet_range.replace(/[\d]+$/, max_len)
+    console.log(`表格行(${sheet_row})大于${max_len}，一般是你手动删除了表格文件某几行导致的，手动缩减为${max_len}，表格范围变为${sheet_range}。如果之后一切正常，你可以忽视此次警告`)
+    to_json_args = {header: 1, range: sheet_range}
+  }
+
+  // console.log(`${Date()}: transform workbook to json`)
+  var raw_data = XLSX.utils.sheet_to_json(first_sheet, to_json_args)
+  console.log(`${Date()}: transform workbook to json, got: [${raw_data.length} lines]`)
+  raw_data = raw_data.filter(i => i.length != 0)
+  console.log(`${Date()}: remove undefined lines, got: [${raw_data.length} lines]`)
   return raw_data
 }
 
