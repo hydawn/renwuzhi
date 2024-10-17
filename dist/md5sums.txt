@@ -5,3 +5,9 @@
 65b23962d9df8e978e24b5052d143f0b  renwuzhi_cdn.v0.1.1.html
 901d0f97bbd56e462c19bcc359b86da9  renwuzhi_contained.v0.1.1.html
 901d0f97bbd56e462c19bcc359b86da9  renwuzhi_contained.v0.1.1.html
+0ee72dce48015dae5384efcb2002910a  renwuzhi_contained.v0.1.2.html
+6944d193e4b82493de0423e0b5f72f3b  renwuzhi_contained.v0.1.2.html
+fd824eabb2a11c670f726f64b370b084  renwuzhi_contained.v0.1.2.html
+aafcc935b9cc17cc7ac69fe5387d4377  renwuzhi_contained.v0.1.2.html
+2cc5e1edf89a48f6642fe35856eff69c  renwuzhi_contained.v0.1.2.html
+36978ad992b4bf598adaf548aa6dfae3  renwuzhi_contained.v0.1.2.html

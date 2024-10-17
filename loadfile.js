@@ -6,6 +6,18 @@ document.getElementById("url_input").addEventListener("keydown", function(event)
   }
 });
 
+async function showElement(id) {
+  const loading = document.getElementById(id);
+  if (loading && loading.classList.contains('hide'))
+    loading.classList.remove('hide');
+}
+
+async function hideElement(id) {
+  const loading = document.getElementById(id);
+  if (loading && !loading.classList.contains('hide'))
+    loading.classList.add('hide');
+}
+
 function getFileUrl() {
   function checkUrl(url) {
     try {
@@ -13,18 +25,20 @@ function getFileUrl() {
       return true;
     } catch (error) {
       console.error(error);
+      hideElement('downloading-from-url');
       alert("不你没贴好:" + error);
       return false;
     }
   }
   const input = document.getElementById('url_input')
-  if (!input)
+  if (!input) {
+    alert("bug出现: input element not rendered");
     return;
-  const file_url = input.value;
-  if (!checkUrl(file_url)) {
-    return
   }
-  console.log('file url:', file_url);
+  const file_url = input.value;
+  if (!checkUrl(file_url))
+    return;
+  showElement('downloading-from-url');
   process_file_url(file_url);
 }
 
@@ -40,7 +54,7 @@ document.getElementById('file_input').addEventListener('change', function(event)
 
   // Handle errors
   reader.onerror = function(error) {
-    alert('错误，请联系这个软件的开发者，反正谁给你的这个软件你就找谁售后')
+    aerror(`错误：${error}`)
     console.log('Error reading file:', error);
   };
 

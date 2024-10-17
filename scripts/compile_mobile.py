@@ -8,6 +8,10 @@ from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 
 
+def css_mini(css: str) -> str:
+    return ''.join([i.strip() for i in css.split('\n')])
+
+
 def js_mini(js_str: str) -> str:
     mini = ''
     for i in js_str.split('\n'):
@@ -47,7 +51,7 @@ def main():
             i.string = js_mini(file.read())
 
 
-    for i in soup.find_all('link'):
+    for i in soup.find_all('link', {'rel': 'icon'}):
         href = i.get('href')
         if not href:
             continue
@@ -59,6 +63,17 @@ def main():
         with open(href, 'rb') as file:
             i['href'] = f"data:{itype};base64,{base64.b64encode(file.read()).decode()}"
 
+    for i in soup.find_all('link', {'rel': 'stylesheet'}):
+        href = i.get('href')
+        if not href:
+            continue
+        style = soup.new_tag('style')
+        with open(href, 'r', encoding='utf-8') as file:
+            style.string = css_mini(file.read())
+        soup.find('head').append(style)
+        #i.parent.append(style)
+        i.decompose()
+        # del i['src']
 
     for i in soup.find_all('img'):
         src = i.get('src')
@@ -74,9 +89,10 @@ def main():
 
 
     name_list = sys.argv[1].rsplit('.', maxsplit=1)
+    html = '\n'.join([i.strip() for i in str(soup).split('\n')])
 
     with open(f'dist/{name_list[0]}_{cdnver}.{name_list[1]}', 'w', encoding='utf-8') as file:
-        file.write(str(soup))
+        file.write(html)
 
 
 if __name__ == "__main__":

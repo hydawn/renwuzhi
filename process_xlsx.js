@@ -1,63 +1,32 @@
 // TODO: 全选、反选、全不选 -- 没用的玩意儿
 // TODO: Q&A: 如果没填 如果填了好多次
 
+// transpo result: list of {question, answer_list} (section)
+// answer_list: list of { name_prompt, answer, name }
 // var select_format_full_choice = false;
 var select_format_full_choice = true;
+
+function setHTML(id, html) {
+  const element = document.getElementById(id)
+  if (typeof element !== "null")
+    element.innerHTML = html
+  else
+    alert(`${id} not found! ${typeof element}`)
+}
+
+function setText(id, text) {
+  const element = document.getElementById(id)
+  if (typeof element !== "null")
+    element.innerText = text;
+  else
+    alert(`${id} not found! ${typeof element}`)
+}
 
 // on xlsx file load
 function onFileLoad(event) {
   console.log('file loaded');
   process_file_content(event.target.result);
 }
-
-//let xlsxPromise = null;
-//async function getXLSX() {
-//  if (!xlsxPromise) {
-//    xlsxPromise = new Promise((resolve, reject) => {
-//      function waitXLSX(time_passed) {
-//        console.log(time_passed);
-//        if (typeof XLSX !== "undefined") {
-//          document.getElementById('loading')?.classList.add('hide');
-//          resolve(XLSX);
-//        } else if (time_passed > 30 * 1000) {
-//          alert("XLSX 加载超时，应该是网络不好");
-//          reject(new Error("Failed to load XLSX: Timeout"));
-//        } else {
-//          // console.log('setting timeout');
-//          setTimeout(() => waitXLSX(time_passed + 100), 100);
-//        }
-//      }
-//      waitXLSX(0);
-//    });
-//  }
-//
-//  // Return the same promise for all calls
-//  return xlsxPromise;
-//
-//  // if (typeof XLSX !== 'undefined') {
-//  //   console.log('xlsx is loaded');
-//  //   return XLSX;
-//  // }
-//
-//  // console.log('xlsx not loaded, read from web')
-//  // // If XLSX isn't available, wait until it is loaded
-//  // return new Promise((resolve, reject) => {
-//  //   const script = document.createElement('script');
-//  //   // this should be slow enough to test
-//  //   script.src = "https://hikerjoy.duckdns.org/renwuzhi/xlsx.full.min.js";
-//  //   script.onload = () => {
-//  //     if (typeof XLSX !== 'undefined') {
-//  //       resolve(XLSX);
-//  //     } else {
-//  //       reject(new Error("Failed to load XLSX"));
-//  //     }
-//  //   };
-//  //   script.onerror = () => reject(new Error("Error loading XLSX script"));
-//  //   document.head.appendChild(script);
-//  // });
-//}
-//// call this right away
-//getXLSX();
 
 function process_file_url(file_url) {
   console.log(`requesting file ${file_url}`)
@@ -110,14 +79,14 @@ function process_file_content(file_content) {
 //}
 
 function start_transposition(raw_data, user_name_list, question_index_checked, name_format_string) {
-  let after_traspo = [] // array of array
-  let empty_result = ['', '(空)', null]
-  function excape_html_string(str) {
+  let after_traspo = [] // array of object
+  const empty_result = ['', '(空)', null]
+  function escape_html_string(str) {
     var div = document.createElement('div');
     div.appendChild(document.createTextNode(str));
     return div.innerHTML;
   }
-  for (let question_index of question_index_checked) {
+  for (const question_index of question_index_checked) {
     // now, gather answers from users
     let answer_list = []
     // "no-dup" -- good, push
@@ -125,9 +94,9 @@ function start_transposition(raw_data, user_name_list, question_index_checked, n
     // "different" -- there is a dup, and they are not the same, alert the user what to do?
     function check_dup(line) {
       for (const oldline of answer_list) {
-        if (line[0] == oldline[0]) {
+        if (line.name == oldline.name) {
           // they are of the same person's
-          if (line[1] == oldline[1]) {
+          if (line.answer == oldline.answer) {
             return "same";
           } else {
             return "different";
@@ -136,81 +105,84 @@ function start_transposition(raw_data, user_name_list, question_index_checked, n
       }
       return "no-dup";
     }
+    const question = raw_data[0][question_index];
     for (let user_index = 0; user_index < user_name_list.length; user_index++) {
       let user_answer = raw_data[1 + user_index][question_index]
       if (empty_result.includes(user_answer)) {
         // if user gives empty answer
         continue
       }
-      let user_name = user_name_list[user_index]
-      let name_prompt = name_format_string.replace(/名字/, user_name)
+      const user_name = user_name_list[user_index]
       // now, what if there are duplicates in the answer list
       // if the same, do nothing, if not, alert the user
-      const answer = [name_prompt, excape_html_string(user_answer)];
+      const answer = {
+        name_prompt: name_format_string.replace(/名字/, user_name),
+        answer: escape_html_string(user_answer),
+        name: user_name
+      };
       const dup_result = check_dup(answer);
       if (dup_result == "same")
         continue
-      const question = raw_data[0][question_index];
       if (dup_result == "different" && question_isabout_picture(question) == false)
         alert(`警告："${user_name}"至少给"${question}"写了至少两个不同的回答，问问${user_name}是把所有回答全贴上去，还是选取其中某一/几个，这里默认把多个回答都贴上去了`);
       answer_list.push(answer)
     }
-    let question = raw_data[0][question_index]
-    after_traspo.push([[question, '']].concat(answer_list))
+    after_traspo.push({ question: question, answer_list: answer_list })
   }
   return after_traspo
 }
 
-function copy_input_text(id) {
-  var input = document.getElementById(id);
-  input.select();
-  document.execCommand("copy");
+// let paragraph = null;
+function copy_inner_text(id) {
+  const paragraph = document.getElementById(id);
+  if (!paragraph) {
+    alert('failed to copy text');
+    return;
+  }
+  // NOTE: don't use innerHTML for it can't handle <> correctly
+  navigator.clipboard.writeText(paragraph.innerText)
+  .then(() => {
+    console.log('Text copied to clipboard');
+  })
+  .catch(err => {
+    alert(`failed to copy text: ${err}`);
+    console.error('Failed to copy text: ', err);
+  });
 }
 
-function copy_innerhtml_with_id(paragraph_id) {
-  console.log(`copy_innerhtml_with_id called with id ${paragraph_id}`)
-  var para = document.getElementById(paragraph_id)
-  navigator.clipboard.writeText(para.innerHTML).then(
-    ()=>{
-      console.log('复制成功')
-    },
-    () => {
-      alert('复制失败，请手动选择复制')
-    }
-  )
-}
-
-function unescape_html(html_text) {
+function puretext_html(html_text) {
   return (new DOMParser()).parseFromString(html_text, 'text/html').body.textContent
 }
 
-function create_pure_text_html(transposition_result) {
-  // transposition_result is a list of list of list
+function create_pure_text_html(result) {
+  // result is a list of list of list
   // create pure_text with controls
-  function create_html_control(paragraph_list, para_index) {
+  function create_html_structure(section, para_index) {
     // create copy except for the first one
-    if (paragraph_list.length == 1) {
-      alert(`没有一个人给${paragraph_list[0]}写人物志，领压别忘了处理`)
-      console.log(`没有一个人给${paragraph_list[0]}写人物志，领压别忘了处理`)
+    if (section.answer_list.length == 0) {
+      alert(`没有一个人给${section.question}写人物志，领压别忘了处理`)
+      console.log(`没有一个人给${section.question}写人物志，领压别忘了处理`)
       return ''
     }
-    let pre_id = `paragraph_id_${para_index}`
-    let result_html = paragraph_list[0][0] + `<br><button onclick="copy_innerhtml_with_id('${pre_id}')">点击复制这一段</button>`
-    preformatted = `<pre id="${pre_id}" style="display:none">`
-    // "<button onclick=\"copy_input_text('transposition_result_textarea')\">点击复制</button>",
-    for (i = 1; i < paragraph_list.length; i++) {
-      preformatted += `${unescape_html(paragraph_list[i].join(''))}\n`
-    }
-    preformatted += '</pre>'
-    after_formatted = '<div>' + paragraph_list.slice(1).map(i => unescape_html(i[0]) + i[1]).join('<br>') + '</div>'
-    result_html += after_formatted + preformatted
-    return result_html
+    const paraid = `pid_${para_index}`
+    const para_headid = `phid_${para_index}`
+    const paragraph_header = `<div id="${para_headid}"></div><button onclick="copy_inner_text('${paraid}')">点击复制这一段</button>`
+    const paragraph = `<div id="${paraid}">` + section.answer_list.map((_, index) => `<div id=${paraid}_${index}></div>`).join('') + '</div>';
+    return '<div class="paragraph">' + paragraph_header + paragraph + '</div>'
   }
-  result_array = []
-  for (j = 0; j < transposition_result.length; j++) {
-    result_array.push(create_html_control(transposition_result[j], j))
+  function create_text(section, para_index) {
+    if (section.answer_list.length == 0)
+      return
+    const paraid = `pid_${para_index}`
+    const para_headid = `phid_${para_index}`
+    setText(para_headid, section.question)
+    section.answer_list.map((i, index) => {
+      setText(`${paraid}_${index}`, puretext_html(i.name_prompt + i.answer))
+    })
   }
-  return result_array.join('<br><br>')
+  const structure = result.map((result, index) => create_html_structure(result, index))
+  setHTML('pure_text_result', structure.join(''))
+  result.map((result, index) => create_text(result, index))
 }
 
 function question_isabout_picture(question) {
@@ -218,21 +190,20 @@ function question_isabout_picture(question) {
 }
 
 function section_is_picture(section) {
-  console.log('examine section:');
-  console.log(section)
   function mostly_urls() {
     let counter = 0;
-    for (const line of section) {
-      line[1].includes('https:/');
+    for (const line of section.answer_list) {
+      line.answer.includes('https:/');
       counter++;
     }
-    if (section.length > 0 && counter > (section.length / 2)) {
+    const answer_number = section.answer_list.length;
+    if (answer_number > 0 && counter > (answer_number / 2)) {
       console.log(`${counter} out of ${section.length} have https in it, consider this section a picture section`);
       return true;
     }
     return false;
   }
-  if (question_isabout_picture(section[0][0]))
+  if (question_isabout_picture(section.question))
     if (mostly_urls()) // check that most lines are urls
       return true;
   return false;
@@ -259,47 +230,49 @@ function setup_rich_reverse() {
   });
 }
 
+function result_to_text(result_list, line_break) {
+  return result_list.map(
+    section => section.question + line_break + section.answer_list.map(
+      i => i.name_prompt + i.answer
+    ).join(line_break)
+  ).join(`${line_break}${line_break}${line_break}`)
+}
+
 function generate_html_result(result_list) {
-  const pure_text_html = create_pure_text_html(result_list);
-  const transpo_result_rich_text = result_list.map(i => i.map(j => j.join('')).join('<br>')).join('<br><br><br>')
-  document.getElementById('pure_text_result').innerHTML = pure_text_html;
-  document.getElementById('rich_text_result').innerHTML = transpo_result_rich_text;
-  setup_rich_reverse();
-  document.getElementById('text_section').classList.remove('hide');
+  create_pure_text_html(result_list)
+  const result_rich_text = result_to_text(result_list, '<br>')
+  // this is fine because < is escaped
+  setHTML('rich_text_result', result_rich_text)
+  setup_rich_reverse()
+  showElement('text_section')
 }
 
 // return a html
 function draw_pictures(section) {
-  const html_content = section.slice(1).map(i => [
+  const html_content = section.answer_list.map(i => [
     '<div class="picture">',
-    `${i[0]}照片&darr; &#x2193;<br/>`,
-    `<img src="${i[1]}" alt="${i[1]}" loading="lazy" /><br/>`,
+    `${i.name}照片&darr; &#x2193;<br/>`,
+    `<img src="${i.answer}" class="user-picture" name="${i.name}" alt="${i.answer}" loading="lazy" /><br/>`,
     '</div>',
   ].join('')).join('')
-  return [
-    '<details id="picture_result">',
-    '<summary><b>转换结果 -- 照片（点击展开）</b></summary>',
-    '右键复制原图，可以直接粘贴到秀米（大概吧<br/>',
-    '如果你只看到一堆网址说明网址过期了，重新导出一下<br/>',
-    section[0][0] + '<br/>',
-    '<div class="gallery">',
-    html_content,
-    '</div>',
-    '</details>',
-  ].join('')
+  console.log('draw:')
+  console.log(section)
+  setHTML('picture_result_question', section.question)
+  setHTML('gallery', html_content)
+  showElement('picture_section')
 }
 
 function present_html_result(result_list) {
   // dangerous injection I know, but it wouldn't affect me hahahahaha
   // 1. see if in result list, there is a picture section
   for (let index = 0; index < result_list.length; index++) {
-    const section = result_list[index];
+    const section = result_list[index]
     if (section_is_picture(section)) {
-      // deal with result with picture
-      const c = (i,a) => {return a.slice(0,i).concat(a.slice(i+1))};
-      document.getElementById('picture_section').innerHTML = draw_pictures(section);
-      generate_html_result(c(index, result_list));
-      return;
+      // deal with result without picture
+      const c = (i,a) => {return a.slice(0,i).concat(a.slice(i+1))}
+      draw_pictures(section)
+      generate_html_result(c(index, result_list))
+      return
     }
   }
 
@@ -308,10 +281,8 @@ function present_html_result(result_list) {
 }
 
 function provide_download(result_list) {
-  const transpo_result_html = result_list.map(i => i.map(j => j.join('')).join('\n')).join('\n\n\n');
-  const transpo_result_pure_text = unescape_html(transpo_result_html);
   // Create a Blob from the text string
-  const blob = new Blob([transpo_result_pure_text], { type: 'text/plain' });
+  const blob = new Blob([puretext_html(result_to_text(result_list, '\n'))], { type: 'text/plain' });
   // Create a URL for the Blob
   const url = URL.createObjectURL(blob);
   // Create a link element for the download
@@ -355,6 +326,7 @@ function after_select_question_column_select_format_prompt(raw_data, user_name_l
     '选一个你想要的格式，或者在下面的输入框中自定义格式（预览功能还没做出来呢，“上一步”按钮也是）',
     '下面的格式中，所有的“名字”这两个字都会被替换成大家问卷中填写的名字',
     '转换后的<b>转换结果 -- 富文本</b>中你可以复制带格式的文字粘贴到秀米或者word中',
+    '其默认格式是黑底白字因为登协现在的人物志模板是黑底白字，你可以在该页面中通过反选“反色”消除黑底白字效果',
     '实际上秀米的带格式粘贴容易出问题，所以默认的粘贴模式都是纯文本粘贴，不想折腾的就别折腾了，老实复制粘贴吧',
     '自定义格式也就是手打html，在文字左右添加tag就可以呈现出各种效果',
     '比如输入 <pre>&lt;b>名字&lt;/b>说：</pre> 就会最后呈现出把大家的名字加粗的效果：<b>名字</b>说：，b是bold的意思',
