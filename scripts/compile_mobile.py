@@ -22,11 +22,25 @@ def js_mini(js_str: str) -> str:
 def main():
     with open(sys.argv[1], 'r', encoding='utf-8') as file:
         html = file.read()
+    cdnver = sys.argv[2]
+    if cdnver not in ['cdn', 'contained']:
+        raise RuntimeError(f'argument cdnver {cdnver} not in {['cdn', 'contained']}')
+    if cdnver == 'cdn':
+        reg = r'https://cdn.sheetjs.com/[-/.a-z0-9]+?xlsx.full.min.js'
+        match = re.search(reg, html)
+        if not match:
+            raise RuntimeError(f'failed to search reg {reg} from html file {sys.argv[1]}')
+        cdnsrc = match.group()
+    else:
+        cdnsrc = ''
 
     soup = BeautifulSoup(html, 'html.parser')
     for i in soup.find_all('script'):
         src = i.get('src')
         if not src:
+            continue
+        if src == 'xlsx.full.min.js' and cdnver == 'cdn':
+            i['src'] = cdnsrc
             continue
         del i['src']
         with open(src, 'r', encoding='utf-8') as file:
@@ -61,7 +75,7 @@ def main():
 
     name_list = sys.argv[1].rsplit('.', maxsplit=1)
 
-    with open(f'{name_list[0]}_contained.{name_list[1]}', 'w', encoding='utf-8') as file:
+    with open(f'dist/{name_list[0]}_{cdnver}.{name_list[1]}', 'w', encoding='utf-8') as file:
         file.write(str(soup))
 
 

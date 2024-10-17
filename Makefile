@@ -1,2 +1,13 @@
-mobile: ./renwuzhi.html ./compile_mobile.py ./favicon.ico ./loadfile.js process_xlsx.js queryfile.js renwuzhi.html xlsx.full.min.js
-	python ./compile_mobile.py ./renwuzhi.html
+publish: version
+	rsync -acP dist/ lad:hikerjoy/renwuzhi/
+	ssh lad brotli -f9 hikerjoy/renwuzhi/renwuzhi_cdn.html hikerjoy/renwuzhi/renwuzhi_contained.html
+
+version: mobile
+	bash scripts/makever.sh
+
+mobile: renwuzhi.html scripts/compile_mobile.py favicon.ico loadfile.js process_xlsx.js load_mode.js xlsxjs.js jszip.min.js
+	#python scripts/compile_mobile.py renwuzhi.html cdn
+	python scripts/compile_mobile.py renwuzhi.html contained
+
+nginx:
+	rsync -rctoDPL lad:/usr/local/nginx/conf/enabled/hikerjoy http.conf

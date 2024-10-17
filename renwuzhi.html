@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-Copyright 2023 dawn
+Copyright 2023 hanyuduan@outlook.com
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,36 +13,68 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
-用了别人的代码，也用人家的licence咯
 -->
 <html>
   <head>
     <meta charset="utf-8">
-    <title>人物志转换 v0.0.3 2024-01-09 18:30</title>
+    <title>人物志转换 v0.1.1 2024-10-16 16:56</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <style>
 /* padding: top right down left */
 body {
+  margin: 0;
   padding: 1% 10% 10% 10%;
-  font-family: 'Times New Roman', serif, 'Noto Sans CJK SC';
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Times New Roman', serif, 'Noto Sans CJK SC';
   font-size: 100%;
 }
-.trans_result {
+img {
+  max-width: 20vw;
+}
+details {
+  margin-bottom: 40px;
+}
+.trans-result {
   padding: 1% 5% 0% 5%;
 }
-/*
-.rich_result {
+.gallery {
+  display: flex;
+  flex-wrap: wrap;
 }
-*/
+.picture {
+  flex: 0 1 auto;
+}
+.hide {
+  display: none;
+}
     </style>
   </head>
   <body>
-
+    <div id="main">
+    <label><input type="checkbox" id="through-mode" checked>上传文件直接出结果模式</label>
+    <label><input type="checkbox" id="simple-mode" checked>简洁模式</label>
+    <script>
+      const sbox = document.getElementById('simple-mode');
+      function applyHideHelp() {
+        if (sbox.checked) {
+          document.querySelectorAll('.help').forEach(i => i.classList.contains('hide') || i.classList.add('hide'))
+        } else {
+          document.querySelectorAll('.help').forEach(i => i.classList.contains('hide') && i.classList.remove('hide'))
+        }
+      }
+      sbox.addEventListener('click', () => applyHideHelp());
+      // hide all help
+      document.addEventListener('DOMContentLoaded', () => {
+        applyHideHelp();
+        const observer = new MutationObserver(() => { console.log('dom changes on body observed!'); applyHideHelp(); });
+        observer.observe(document.body, { childList: true, subtree: true });
+      });
+      // document.addEventListener('DOMContentChanged', () => applyHideHelp());
+    </script>
+    <div class="help hide">
     <h2>运行之前</h2>
     <div class="content">
       <p>
-      某一步的说明没看懂没关系，无脑下一步就行了
+      某一步的说明没看懂没关系，无脑<b style="color: red;">下一步</b>就行了
       </p>
       <p>
       如果你某一步做错了，比如选了你不该选的，请刷新页面重新上传<br>
@@ -54,67 +86,101 @@ body {
       或者联系我，如果你不知道我是谁，我的联系方式在网页最下面
       </p>
     </div>
+    </div>
 
     <br>
 
     <h2>开始转换！</h2>
     <div class="content">
     <div class="input" id="import_file_details">
-      首先你需要上传人物志问卷结果文件，现在仅支持xls(x)格式<br>
-      如果你已经把表格文件下载到了本地，就使用下面的 <b>从本地导入</b><br>
-      如果你手头有一个（问卷星结果）文件下载链接，就点击下面的 <b>从文件链接导入</b><br>
-      其实，如果文件链接下载失败（你发现网页半天没反应），你还是得手动下载然后从本地导入
-      <details open>
+      <div class="help hide">
+        首先你需要上传人物志问卷结果文件，现在仅支持xls(x)格式<br>
+        如果你已经把表格文件下载到了本地，就使用下面的 <b>从本地导入</b><br>
+        如果你手头有一个（问卷星结果）文件下载链接，就点击下面的 <b>从文件链接导入</b><br>
+        其实，如果文件链接下载失败（你发现网页半天没反应），你还是得手动下载然后从本地导入<br>
+        注意数据需在第一表格里，但是一般都会在第一表格里所以其实你不需要注意<br>
+        如果你发现上传文件之后没反应，说明网页卡死了，恭喜你发现了bug，如果你感兴趣可以把你的文件发过来我看看怎么个事<br>
+      </div>
+      <details>
         <summary><b>从本地导入</b></summary>
         <div class="input-loadfile">
-        <h2>上传xls(x)文件</h2>
-        注意数据需在第一表格里，但是一般都会在第一表格里所以其实你不需要注意<br>
+        <span>上传xls(x)文件：</span>
         <input type="file" id="file_input" name="name 有什么用呢？ 点击这里上传文件 HIT IT!">
         </div>
       </details>
 
-      <details>
+      <details open>
         <summary><b>从文件链接导入</b></summary>
         <div id="url_input_div">
-        <h2>把导出excel网址贴到这里 （问卷星下载地址什么的）</h2>
+        <span>把导出excel网址贴到这里（比如问卷星下载地址）：</span>
         <!-- debug -->
         <!-- <input type="text" id="url_input" value="http://localhost:10880/241183365_0_宁海人物志收集_19_19.xlsx"> -->
         <input type="text" id="url_input" value="">
-        <button type="button" onclick="get_file_url()">贴好了</button>
+        <button type="button" id="urlOKButton" onclick="getFileUrl()">贴好了</button>
         </div>
       </details>
     </div>
 
-    <p id="html_selector_field"></p>
-    <div class="trans_result" id="transposition_result_field">
-      <div id="transposition_result_text_div"></div>
-      <div id="transposition_result_file_div"></div>
+    <div id="html_selector_prompt" class="help hide"></div>
+    <div id="html_selector_list"></div>
+    <div class="trans-result">
+      <div id="picture_section"></div>
+      <div id="text_section" class="hide">
+        <details open>
+          <summary><b>转换结果</b></summary>
+          <div id="pure_text_result">
+          </div>
+        </details>
+        <style type="text/css" media="screen">
+#rich_text_result {
+  font-family: "Noto Sans CJK SC","Lucida Grande","Helvetica Neue",Helvetica,"Hiragino Sans GB","Microsoft YaHei","Apple Color Emoji","Emoji Symbols Font","Segoe UI Symbol",Arial,sans-serif;
+  font-size: 14px;
+}
+.color-reversed {
+  background: black;
+  color: white;
+}
+        </style>
+        <details>
+          <summary><b>转换结果 -- 富文本</b></summary>
+          <input type="checkbox" id="reverse-color-button" checked>反色</input> -- 秀米中反选“粘贴时清除格式”用于登协模板
+          <div id="rich_text_result" class="color-reversed">
+          </div>
+        </details>
+      </div>
+      <div id="file_section"></div>
+
+      <!-- I put the script here is for them to load before a 32K picture is loaded -->
+      <script src="loadfile.js"></script>
+      <script src="process_xlsx.js"></script>
+      <script src="load_mode.js"></script>
+
       <div class="rich_result" id="rich_text_tutorial" style="display:none">
         <details>
           <summary>如果你粘贴到秀米后发现格式不对并且不能调整，点这里</summary>
           <p>
-          因为你把<b>设置</b>中<b>粘贴时清除格式</b>点掉了，所以连带格式都一起被粘贴到了秀米里
+          可能因为你把<b>设置</b>中<b>粘贴时清除格式</b>点掉了，所以连带格式都一起被粘贴到了秀米里
           <br>
-          养成好习惯，粘贴纯文本
+          有时候你想粘贴格式，有时候不想。多试试。
           </p>
+          <img src="秀米_粘贴时清除格式.png" type="image/png">
         </details>
-        <!-- <img src="秀米_粘贴时清除格式.png" type="image/png"> -->
       </div>
     </div>
     </div>
 
-    <!-- <script lang="javascript" src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script> -->
-    <!-- <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script> -->
-    <script src="xlsx.full.min.js"></script>
-    <!-- <script src="processcsv.js"></script> -->
-    <script src="queryfile.js"></script>
-    <script src="loadfile.js"></script>
-    <script src="process_xlsx.js"></script>
     <br>
 
 
+    <div class="help hide">
     <h2>开始聊天！</h2>
     <div class="content">
+
+      <p>
+      在线版 <a href="https://hikerjoy.duckdns.org/renwuzhi/">https://hikerjoy.duckdns.org/renwuzhi/</a><br/>
+      但是在线版，那天我不关心了，不维护了，就挂了。关心的可以<code>Ctrl+S</code>保存一个离线版，离线版用浏览器打开一样能用
+      </p>
+
     <details>
     <summary>但是因为内向所以默认折叠</summary>
     <div class="聊天">
@@ -140,6 +206,14 @@ body {
       写这个程序有一种“古法酿造”的感觉，
       放着现代的框架不用非得要玩原始
       </p>
+      <p>
+      2024-10-17 10:09
+      v0.1.1
+      更新一下，现在不用sheetjs了，那个太大了，改用<a href="https://stuk.github.io/jszip/">JSZip - https://stuk.github.io/jszip/</a>解压xlsx然后自己找sheet1<br>
+      现在文件大小小很多
+      JSZip is dual-licensed. You may use it under the MIT license or the GPLv3 license
+      还没研究过，下一版再说吧
+      </p>
 
       <!--
       <p>
@@ -160,6 +234,16 @@ body {
       更丰富的选择。我想一开始就暗示你，你有的选。<br>
       最后一步只有一个选项，而且已经帮你选好了，当然了，你也可以什么都不选。
       </p>
+
+      <p>
+      2024-10-15 08:18
+      fix:
+        下载txt文件会出现多余的逗号
+      feat:
+        可查看图片
+        应对一个队员提交多次的情况
+      todo: 批量下载图片，极速模式（直接跳过所有过程），简洁模式（没有帮助和提示）
+      </p>
       -->
 
       <p>
@@ -168,9 +252,12 @@ body {
     </div>
     </details>
     <p>
-    微信19965909565
+    微信19965909565<br/>hanyuduan@outlook.com
     </p>
     </div>
-
+    </div>
+  </div>
+  <script src="jszip.min.js"></script>
+  <script src="xlsxjs.js"></script>
   </body>
 </html>

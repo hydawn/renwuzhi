@@ -1,6 +1,34 @@
-document.getElementById('file_input').addEventListener('change', on_file_input_change);
+document.getElementById("url_input").addEventListener("keydown", function(event) {
+  // Check if the Enter key was pressed
+  if (event.key === "Enter") {
+    // Trigger the button click
+    document.getElementById("urlOKButton").click();
+  }
+});
 
-function on_file_input_change(event) {
+function getFileUrl() {
+  function checkUrl(url) {
+    try {
+      new URL(url);
+      return true;
+    } catch (error) {
+      console.error(error);
+      alert("不你没贴好:" + error);
+      return false;
+    }
+  }
+  const input = document.getElementById('url_input')
+  if (!input)
+    return;
+  const file_url = input.value;
+  if (!checkUrl(file_url)) {
+    return
+  }
+  console.log('file url:', file_url);
+  process_file_url(file_url);
+}
+
+document.getElementById('file_input').addEventListener('change', function(event) {
   // Get the selected file from the input element
   const selectedFile = event.target.files[0];
 
@@ -8,7 +36,7 @@ function on_file_input_change(event) {
   const reader = new FileReader();
 
   // Define what happens when the file has been read
-  reader.onload = on_file_load
+  reader.onload = onFileLoad
 
   // Handle errors
   reader.onerror = function(error) {
@@ -16,5 +44,5 @@ function on_file_input_change(event) {
     console.log('Error reading file:', error);
   };
 
-  reader.readAsBinaryString(selectedFile);
-}
+  reader.readAsArrayBuffer(selectedFile);
+});

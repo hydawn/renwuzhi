@@ -1,61 +1,113 @@
 // TODO: 全选、反选、全不选 -- 没用的玩意儿
-// TODO: match http:// and deselect that column automatically
+// TODO: Q&A: 如果没填 如果填了好多次
+
+// var select_format_full_choice = false;
+var select_format_full_choice = true;
 
 // on xlsx file load
-function on_file_load(event) {
-  console.log('file loaded')
+function onFileLoad(event) {
+  console.log('file loaded');
   process_file_content(event.target.result);
 }
 
+//let xlsxPromise = null;
+//async function getXLSX() {
+//  if (!xlsxPromise) {
+//    xlsxPromise = new Promise((resolve, reject) => {
+//      function waitXLSX(time_passed) {
+//        console.log(time_passed);
+//        if (typeof XLSX !== "undefined") {
+//          document.getElementById('loading')?.classList.add('hide');
+//          resolve(XLSX);
+//        } else if (time_passed > 30 * 1000) {
+//          alert("XLSX 加载超时，应该是网络不好");
+//          reject(new Error("Failed to load XLSX: Timeout"));
+//        } else {
+//          // console.log('setting timeout');
+//          setTimeout(() => waitXLSX(time_passed + 100), 100);
+//        }
+//      }
+//      waitXLSX(0);
+//    });
+//  }
+//
+//  // Return the same promise for all calls
+//  return xlsxPromise;
+//
+//  // if (typeof XLSX !== 'undefined') {
+//  //   console.log('xlsx is loaded');
+//  //   return XLSX;
+//  // }
+//
+//  // console.log('xlsx not loaded, read from web')
+//  // // If XLSX isn't available, wait until it is loaded
+//  // return new Promise((resolve, reject) => {
+//  //   const script = document.createElement('script');
+//  //   // this should be slow enough to test
+//  //   script.src = "https://hikerjoy.duckdns.org/renwuzhi/xlsx.full.min.js";
+//  //   script.onload = () => {
+//  //     if (typeof XLSX !== 'undefined') {
+//  //       resolve(XLSX);
+//  //     } else {
+//  //       reject(new Error("Failed to load XLSX"));
+//  //     }
+//  //   };
+//  //   script.onerror = () => reject(new Error("Error loading XLSX script"));
+//  //   document.head.appendChild(script);
+//  // });
+//}
+//// call this right away
+//getXLSX();
+
 function process_file_url(file_url) {
-  // var url = "https://sheetjs.com/pres.xlsx"; // some url
-
-  /* set up async GET request */
   console.log(`requesting file ${file_url}`)
-  var req = new XMLHttpRequest();
-  req.open("GET", file_url, true);
-  req.responseType = "arraybuffer";
+  // why I'm not using fetch?
+  const request = new XMLHttpRequest();
+  request.open("GET", file_url, true);
+  request.responseType = "arraybuffer";
 
-  req.onload = function(e) {
-    process_xlsx_workbook(XLSX.read(req.response));
+  request.onload = (_) => {
+    parseXlsx(request.response, "sheet1").then(table => process_xlsx_workbook(table));
   };
 
-  req.send();
+  request.send();
 }
 
+//let filec = null;
+// async function process_file_content(file_content) {
 function process_file_content(file_content) {
-  process_xlsx_workbook(XLSX.read(file_content, {type: 'binary'}))
+  parseXlsx(file_content, "sheet1").then(table => process_xlsx_workbook(table));
 }
 
-function workbook_to_raw_data(workbook) {
-  // work on the first sheet
-  const first_sheet = workbook.Sheets[workbook.SheetNames[0]]
-
-  var sheet_range = first_sheet['!ref']
-  const sheet_row_match = sheet_range.match(/[\d]+$/)
-  if (!sheet_row_match) {
-    alert(`解析表格范围失败 [${sheet_range}]`);
-    return null;
-  }
-  const sheet_row = parseInt(sheet_row_match[0])
-  to_json_args = {header: 1}
-  const max_len = 300
-  // sometimes is very slow and takes up a ton of memory because sheet row is
-  // way too big (like 1048576)
-  // because you deleted some rows in the file
-  if (sheet_row > max_len) {
-    sheet_range = sheet_range.replace(/[\d]+$/, max_len)
-    console.log(`表格行(${sheet_row})大于${max_len}，一般是你手动删除了表格文件某几行导致的，手动缩减为${max_len}，表格范围变为${sheet_range}。如果之后一切正常，你可以忽视此次警告`)
-    to_json_args = {header: 1, range: sheet_range}
-  }
-
-  // console.log(`${Date()}: transform workbook to json`)
-  var raw_data = XLSX.utils.sheet_to_json(first_sheet, to_json_args)
-  console.log(`${Date()}: transform workbook to json, got: [${raw_data.length} lines]`)
-  raw_data = raw_data.filter(i => i.length != 0)
-  console.log(`${Date()}: remove undefined lines, got: [${raw_data.length} lines]`)
-  return raw_data
-}
+//async function workbook_to_raw_data(workbook) {
+//  // work on the first sheet
+//  const first_sheet = workbook.Sheets[workbook.SheetNames[0]]
+//
+//  var sheet_range = first_sheet['!ref']
+//  const sheet_row_match = sheet_range.match(/[\d]+$/)
+//  if (!sheet_row_match) {
+//    alert(`解析表格范围失败 [${sheet_range}]`);
+//    return null;
+//  }
+//  const sheet_row = parseInt(sheet_row_match[0])
+//  to_json_args = {header: 1}
+//  const max_len = 300
+//  // sometimes is very slow and takes up a ton of memory because sheet row is
+//  // way too big (like 1048576)
+//  // because you deleted some rows in the file
+//  if (sheet_row > max_len) {
+//    sheet_range = sheet_range.replace(/[\d]+$/, max_len)
+//    console.log(`表格行(${sheet_row})大于${max_len}，一般是你手动删除了表格文件某几行导致的，手动缩减为${max_len}，表格范围变为${sheet_range}。如果之后一切正常，你可以忽视此次警告`)
+//    to_json_args = {header: 1, range: sheet_range}
+//  }
+//
+//  // console.log(`${Date()}: transform workbook to json`)
+//  var raw_data = (await getXLSX()).utils.sheet_to_json(first_sheet, to_json_args)
+//  console.log(`${Date()}: transform workbook to json, got: [${raw_data.length} lines]`)
+//  raw_data = raw_data.filter(i => i.length != 0)
+//  console.log(`${Date()}: remove undefined lines, got: [${raw_data.length} lines]`)
+//  return raw_data
+//}
 
 function start_transposition(raw_data, user_name_list, question_index_checked, name_format_string) {
   let after_traspo = [] // array of array
@@ -68,14 +120,40 @@ function start_transposition(raw_data, user_name_list, question_index_checked, n
   for (let question_index of question_index_checked) {
     // now, gather answers from users
     let answer_list = []
+    // "no-dup" -- good, push
+    // "same" -- there is dup, but they are exactly the same, so, don't push a new one
+    // "different" -- there is a dup, and they are not the same, alert the user what to do?
+    function check_dup(line) {
+      for (const oldline of answer_list) {
+        if (line[0] == oldline[0]) {
+          // they are of the same person's
+          if (line[1] == oldline[1]) {
+            return "same";
+          } else {
+            return "different";
+          }
+        }
+      }
+      return "no-dup";
+    }
     for (let user_index = 0; user_index < user_name_list.length; user_index++) {
       let user_answer = raw_data[1 + user_index][question_index]
       if (empty_result.includes(user_answer)) {
+        // if user gives empty answer
         continue
       }
       let user_name = user_name_list[user_index]
       let name_prompt = name_format_string.replace(/名字/, user_name)
-      answer_list.push([name_prompt, excape_html_string(user_answer)])
+      // now, what if there are duplicates in the answer list
+      // if the same, do nothing, if not, alert the user
+      const answer = [name_prompt, excape_html_string(user_answer)];
+      const dup_result = check_dup(answer);
+      if (dup_result == "same")
+        continue
+      const question = raw_data[0][question_index];
+      if (dup_result == "different" && question_isabout_picture(question) == false)
+        alert(`警告："${user_name}"至少给"${question}"写了至少两个不同的回答，问问${user_name}是把所有回答全贴上去，还是选取其中某一/几个，这里默认把多个回答都贴上去了`);
+      answer_list.push(answer)
     }
     let question = raw_data[0][question_index]
     after_traspo.push([[question, '']].concat(answer_list))
@@ -135,33 +213,103 @@ function create_pure_text_html(transposition_result) {
   return result_array.join('<br><br>')
 }
 
-function provide_copy_and_download(transpo_result_list) {
-  // text result
-  console.log(transposition_result)
-  pure_text_html = create_pure_text_html(transposition_result)
-  pure_text = [
-    '<details open>',
-    '<summary><b>转换结果</b></summary>',
-    // "<button onclick=\"copy_input_text('transposition_result_textarea')\">点击复制</button>",
-    '<br>',
-    // '<textarea readonly id="transposition_result_textarea" rows="56" cols="128">',
-    `${pure_text_html}`,
-    // '</textarea>',
-    '</details>',
-  ]
-  transpo_result_rich_text = transposition_result.map(i => i.map(j => j.join('')).join('<br>')).join('<br><br><br>')
-  rich_text = [
-    '<details id="rich_text_result">',
-    '<summary><b>转换结果 -- 富文本</b></summary>',
-    `${transpo_result_rich_text}`,
-    '</details>',
-  ]
-  inner_html_list = pure_text.concat(rich_text)
-  // dangerous injection I know, but it wouldn't affect me
-  document.getElementById('transposition_result_text_div').innerHTML = inner_html_list.join('');
+function question_isabout_picture(question) {
+  return question.includes('图片') || question.includes('照片') || question.includes('相片');
+}
 
-  transpo_result_html = transposition_result.map(i => i.join('\n')).join('\n\n\n')
-  transpo_result_pure_text = unescape_html(transpo_result_html)
+function section_is_picture(section) {
+  console.log('examine section:');
+  console.log(section)
+  function mostly_urls() {
+    let counter = 0;
+    for (const line of section) {
+      line[1].includes('https:/');
+      counter++;
+    }
+    if (section.length > 0 && counter > (section.length / 2)) {
+      console.log(`${counter} out of ${section.length} have https in it, consider this section a picture section`);
+      return true;
+    }
+    return false;
+  }
+  if (question_isabout_picture(section[0][0]))
+    if (mostly_urls()) // check that most lines are urls
+      return true;
+  return false;
+}
+
+function setup_rich_reverse() {
+  const rich_button = document.getElementById('reverse-color-button');
+  const rich_result = document.getElementById('rich_text_result');
+  if (typeof rich_button == "undefined") {
+    console.log('rich button component is undefined');
+    return;
+  }
+  if (typeof rich_result == "undefined") {
+    console.log('rich result component is undefined');
+    return;
+  }
+  rich_button.addEventListener('click', () => {
+    console.log(`clicked with ${rich_button.checked}`);
+    if (rich_button.checked) {
+      rich_result.classList.contains('color-reversed') || rich_result.classList.add('color-reversed');
+    } else {
+      rich_result.classList.contains('color-reversed') && rich_result.classList.remove('color-reversed');
+    }
+  });
+}
+
+function generate_html_result(result_list) {
+  const pure_text_html = create_pure_text_html(result_list);
+  const transpo_result_rich_text = result_list.map(i => i.map(j => j.join('')).join('<br>')).join('<br><br><br>')
+  document.getElementById('pure_text_result').innerHTML = pure_text_html;
+  document.getElementById('rich_text_result').innerHTML = transpo_result_rich_text;
+  setup_rich_reverse();
+  document.getElementById('text_section').classList.remove('hide');
+}
+
+// return a html
+function draw_pictures(section) {
+  const html_content = section.slice(1).map(i => [
+    '<div class="picture">',
+    `${i[0]}照片&darr; &#x2193;<br/>`,
+    `<img src="${i[1]}" alt="${i[1]}" loading="lazy" /><br/>`,
+    '</div>',
+  ].join('')).join('')
+  return [
+    '<details id="picture_result">',
+    '<summary><b>转换结果 -- 照片（点击展开）</b></summary>',
+    '右键复制原图，可以直接粘贴到秀米（大概吧<br/>',
+    '如果你只看到一堆网址说明网址过期了，重新导出一下<br/>',
+    section[0][0] + '<br/>',
+    '<div class="gallery">',
+    html_content,
+    '</div>',
+    '</details>',
+  ].join('')
+}
+
+function present_html_result(result_list) {
+  // dangerous injection I know, but it wouldn't affect me hahahahaha
+  // 1. see if in result list, there is a picture section
+  for (let index = 0; index < result_list.length; index++) {
+    const section = result_list[index];
+    if (section_is_picture(section)) {
+      // deal with result with picture
+      const c = (i,a) => {return a.slice(0,i).concat(a.slice(i+1))};
+      document.getElementById('picture_section').innerHTML = draw_pictures(section);
+      generate_html_result(c(index, result_list));
+      return;
+    }
+  }
+
+  // result with no picture
+  generate_html_result(result_list);
+}
+
+function provide_download(result_list) {
+  const transpo_result_html = result_list.map(i => i.map(j => j.join('')).join('\n')).join('\n\n\n');
+  const transpo_result_pure_text = unescape_html(transpo_result_html);
   // Create a Blob from the text string
   const blob = new Blob([transpo_result_pure_text], { type: 'text/plain' });
   // Create a URL for the Blob
@@ -170,13 +318,20 @@ function provide_copy_and_download(transpo_result_list) {
   const atag = document.createElement('a');
   atag.href = url;
   atag.download = 'result_file.txt'; // Specify the desired file name
-  atag.appendChild(document.createTextNode('或者点击下载转换后的纯文本文件'))
-  document.getElementById('transposition_result_file_div').appendChild(atag)
+  atag.appendChild(document.createTextNode('或者点击下载转换后的纯文本文件'));
+  document.getElementById('file_section').appendChild(atag);
   // Simulate a click on the link to trigger the download
   //atag.click();
 
   // Release the URL when no longer needed
   // URL.revokeObjectURL(url);
+}
+
+function provide_copy_and_download(transposition_result_list) {
+  console.log('transpo result list:');
+  console.log(transposition_result_list);
+  present_html_result(transposition_result_list);
+  provide_download(transposition_result_list);
 }
 
 // onclick handler to make checkboxes behave like single choice
@@ -191,8 +346,6 @@ function html_selector_single_select_onclick(clicked_checkbox) {
   // document.querySelectorAll('div[type="magic_type_seEx"]').forEach(function(div) { div.style.display = 'block'})
 }
 
-// var select_format_full_choice = false;
-var select_format_full_choice = true;
 function after_select_question_column_select_format_prompt(raw_data, user_name_list, question_index_checked) {
   let html_prompt_list = [
     // '这些选项是用来自定义输出的，请静下心来感受这些选项的意义',
@@ -221,9 +374,10 @@ function after_select_question_column_select_format_prompt(raw_data, user_name_l
     '<small>无敌小天使什么是逗你玩的不要真的选了效果很不理想</small>',
   ]
   let choices = [ 'From 名字：' ]
-  let default_choice = [0]
+  let default_choice = [1]
   if (select_format_full_choice) {
     choices = choices.concat([
+      '<b>From 名字：</b>',
       '名字：',
       '来自你的名字无敌小天使📣', //  which is &#128227;
       '你的自定义格式：<input type="text" id="customInput" size="48" value="<span style=&quot;color:rebeccapurple;&quot;><b>名字</b></span>：">',
@@ -274,22 +428,24 @@ function after_select_question_column_start_transposition(raw_data, user_name_li
   //   '那算你会玩，自己转置吧',
   // ]
   // start transposition
-  transposition_result = start_transposition(raw_data, user_name_list, question_index_checked, name_format_string)
+  const transposition_result = start_transposition(raw_data, user_name_list, question_index_checked, name_format_string)
   // present that to html and generate a file to download
   // generate a text area
   // transpo_result_text = transposition_result.map(i => i.join('\n')).join('\n\n\n')
   provide_copy_and_download(transposition_result)
 
-  // then, download pictures in batch if you want to
+  // TODO: then, download pictures in batch if you want to
   // possible_picture_index = []
-  epilog_list = [
+  const epilog_list = [
     '好了，这就是全部的内容了，有什么建议或者需求都可以提给我（微信在最网页下面），心情好就给你实现!',
     '警告，不要在手机上尝试把复制的人物志转换内容粘贴到微信里面（我的手机，系统桌面直接卡死了，你也可以逝世）,',
     '如果你想保存富文本，可以直接按Ctrl-S用你的浏览器把整个网页保存下来，以后该html文件在任何地方打开你都可以看见下面的富文本',
     '推荐大家检查一下转换后的文字，防bug',
   ]
-  document.getElementById('html_selector_field').innerHTML = '<h3>转换结果</h3>' + epilog_list.join('<br>')
-  document.getElementById('rich_text_tutorial').style.display = 'block'
+  // clear the last list
+  document.getElementById('html_selector_list').innerHTML = '';
+  document.getElementById('html_selector_prompt').innerHTML = '<h3>转换结果</h3>' + epilog_list.join('<br>');
+  document.getElementById('rich_text_tutorial').style.display = 'block';
 }
 
 function after_name_column_select_question_column(raw_data, index_checked) {
@@ -310,7 +466,7 @@ function after_name_column_select_question_column(raw_data, index_checked) {
   console.log(raw_data)
   console.log('names are:')
   console.log(name_list)
-  let html_prompt_list = [
+  const html_prompt_list = [
     '好，在开始转换之前，还要知道哪些问题是“你想展现在人物志里的”，',
     '“你想展现在人物志里的”问题，比如，“你想对XXX说”，或者“这次旅途的感想”之类的',
     '你要把这些问题都勾选上（默认全部勾选）',
@@ -332,12 +488,49 @@ function after_name_column_select_question_column(raw_data, index_checked) {
   )
 }
 
-function process_xlsx_workbook(workbook) {
-  let raw_data = workbook_to_raw_data(workbook);
-  console.log('xlsx load completed, will not display import div again')
+function findMaxLength(table) {
+  if (table.length == 0)
+    return 0;
+  let max = table[0].length;
+  for (const row of table)
+    if (row.length > max)
+      max = row.length;
+  return max;
+}
+
+function checkTableSquare(table) {
+  const len = findMaxLength(table);
+  for (const row of table)
+    if (row.length != len)
+      return false;
+  return true;
+}
+
+function preprocess_table(table) {
+  console.log('xlsx load completed');
+  console.log(table);
+  let new_table = table.filter(row => row.length > 0);
+  if (!checkTableSquare(new_table)) {
+    alert("xlsx格式错误：行宽度不同一。最好不要改动xlsx文件，直接上传这里");
+    return [];
+  }
+  return new_table;
+}
+
+//async function process_xlsx_workbook(workbook) {
+// raw_data is an array of array
+async function process_xlsx_workbook(raw_data) {
+  // if this is called, then xlsx must be loaded
+  //let table = await workbook_to_raw_data(workbook);
+  raw_data = preprocess_table(raw_data);
+  console.log(raw_data)
+  console.log(raw_data.length)
+  console.log(raw_data[0])
+  if (0 == raw_data.length)
+    return;
   document.getElementById('import_file_details').style.display = 'none'
 
-  let useless_header = ["序号", "提交答卷时间", "所用时间", "来源", "来源详情", "来自IP"]
+  const useless_header = ["序号", "提交答卷时间", "所用时间", "来源", "来源详情", "来自IP"]
   remove_useless_columns(raw_data, useless_header); // oh, pass by reference
   // remove the prefixing number and '、'
   raw_data[0] = raw_data[0].map(i => i.replace(/^\d+、/, ""))
@@ -347,16 +540,19 @@ function process_xlsx_workbook(workbook) {
     '接下来我们需要人工一下智能，因为我需要知道哪一列（虽然一般是第一列）',
     '请在如下选项中勾选询问填问卷者名字的那个问题，因为程序不识字，所以要你告诉我',
   ]
+  const default_choice = [0];
+  function on_submit(index_checked) {
+    after_name_column_select_question_column(raw_data, index_checked);
+  }
   html_selector(
     '<h3>选择姓名列</h3>' + html_prompt_list.join('<br>'),
-    raw_data[0], [0], '', function(index_checked) {
-    after_name_column_select_question_column(raw_data, index_checked);
-  });
-  // JSON.stringify(raw_data[0])
+    raw_data[0], default_choice, '', on_submit
+  );
 }
 
 function remove_useless_columns(raw_data, useless_header) {
-  header_list = raw_data[0]; // this is header
+  console.log(raw_data.length)
+  const header_list = raw_data[0]; // this is header
   // try to delete rows that is inside useless header
   var useless_column_count = 0;
   for (let header of header_list) {
@@ -377,31 +573,33 @@ function remove_useless_columns(raw_data, useless_header) {
 
 // might be a stupid choice to insert function names
 function present_choices(html_prompt, array_option, default_checked_index, on_click_func_name) {
-  // var prompt_list = [html_prompt, '<form>', '<button id="checkButton">确定</button>']
-  var prompt_list = [html_prompt, '<br>', '<button id="checkButton">确定/下一步</button><br>']
+  var prompt_list = ['<button id="checkButton">确定/下一步</button><br>']
   for (let i = 0; i < array_option.length; i++) {
-    let checked = ''
-    if (default_checked_index.includes(i)) {
-      checked = 'checked'
-    }
-    let breakline = ''
-    if (i % 5 == 4) {
-      breakline = '<br>'
-    }
-    let on_click = `onclick="${on_click_func_name}(this)"`
-    if (on_click_func_name.length == 0) {
-      on_click = ''
-    }
-    prompt_list.push(`<label><input type="checkbox" name="html_selector_options" value="${i}" ${on_click} ${checked}>${array_option[i]}</label>${breakline}`)
+    const checked = default_checked_index.includes(i) ? 'checked' : '';
+    const breakline = (i % 5 == 4) ? '<br/>' : '';
+    const on_click = (on_click_func_name.length == 0) ? '' : `onclick="${on_click_func_name}(this)"`
+    prompt_list.push([
+      '<label>',
+      `<input type="checkbox" name="html_selector_options" value="${i}" ${on_click} ${checked}>`,
+      array_option[i],
+      `</label>${breakline}`
+    ].join(''))
   }
   prompt_list.push('<br>')
   // prompt_list.push('</form>')
-  document.getElementById('html_selector_field').innerHTML = prompt_list.join('\n')
+  document.getElementById('html_selector_prompt').innerHTML = html_prompt + '<br/>';
+  document.getElementById('html_selector_list').innerHTML = prompt_list.join('\n');
 }
 
 // return a array if index telling me which element is selected,
 // don't return element themselves, return index
 function html_selector(html_prompt, array_option, default_checked_index, on_click_func_name, on_submit) {
+  // however, in through mode, just went all the way through!
+  if (through_mode()) {
+    on_submit(default_checked_index);
+    return;
+  }
+
   present_choices(html_prompt, array_option, default_checked_index, on_click_func_name)
 
   const checkboxes = document.querySelectorAll('input[type="checkbox"][name="html_selector_options"]');
