@@ -252,7 +252,7 @@ function draw_pictures(section) {
   const html_content = section.answer_list.map(i => [
     '<div class="picture">',
     `${i.name}照片&darr; &#x2193;<br/>`,
-    `<img src="${i.answer}" class="user-picture" name="${i.name}" alt="${i.answer}" loading="lazy" /><br/>`,
+    `<img crossorigin="anonymous" src="${i.answer}" class="user-picture" name="${i.name}" alt="${i.answer}" loading="lazy" /><br/>`,
     '</div>',
   ].join('')).join('')
   console.log('draw:')
