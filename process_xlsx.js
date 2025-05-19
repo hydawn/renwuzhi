@@ -186,26 +186,67 @@ function create_pure_text_html(result) {
 }
 
 function question_isabout_picture(question) {
-  return question.includes('图片') || question.includes('照片') || question.includes('相片');
+  return question.includes('图片') || question.includes('照片') || question.includes('相片') || question.includes('个人照');
+}
+
+function question_mightabout_picture(question) {
+  return question.includes('图') || question.includes('照') || question.includes('相') || question.includes('片');
 }
 
 function section_is_picture(section) {
-  function mostly_urls() {
-    let counter = 0;
-    for (const line of section.answer_list) {
-      line.answer.includes('https:/');
-      counter++;
-    }
-    const answer_number = section.answer_list.length;
-    if (answer_number > 0 && counter > (answer_number / 2)) {
-      console.log(`${counter} out of ${section.length} have https in it, consider this section a picture section`);
-      return true;
-    }
-    return false;
+  console.log('for section, check if this is picture')
+  function str_is_picture_url(str) {
+    let picture_substr = [ '.jpg', '.JPG', '.jpeg', '.JPEG', '.png', '.PNG', '.webp', '.WEBP' ];
+    for (const substr of picture_substr)
+      if (str.includes(substr))
+        return true;
   }
-  if (question_isabout_picture(section.question))
-    if (mostly_urls()) // check that most lines are urls
-      return true;
+  function count_urls() {
+    let https_counter = 0;
+    let picture_counter = 0;
+    const answer_number = section.answer_list.length;
+    if (answer_number <= 0)
+      return [0, 0];
+
+    for (const line of section.answer_list) {
+      if (line.answer.includes('https:/'))
+        https_counter++;
+      if (str_is_picture_url(line.answer))
+        picture_counter++;
+    }
+    console.log(`got answers ${answer_number} and count includes https ${https_counter}, include picture ${picture_counter}`)
+
+    url_stat = 0;
+    if (https_counter == answer_number) {
+      console.log(`${https_counter} out of ${answer_number} have https in it`);
+      url_stat = 2;
+    } else if (https_counter > (answer_number / 2)) {
+      console.log(`${https_counter} out of ${answer_number} have https in it`);
+      url_stat = 1;
+    }
+
+    pic_stat = 0;
+    if (picture_counter == answer_number) {
+      console.log('all pictures');
+      pic_stat = 2;
+    } else if (picture_counter > (answer_number / 2)) {
+      console.log('mostly pictures');
+      pic_stat = 1;
+    }
+
+    return [url_stat, pic_stat];
+  }
+  line_stat = count_urls();
+  function mostly_urls() { return line_stat[0] >= 1; }
+  function all_urls() { return line_stat[0] >= 2; }
+  function all_pics() { return line_stat[1] >= 2; }
+  function mostly_pics() { return line_stat[1] >= 1; }
+  if (question_isabout_picture(section.question) && mostly_urls())
+    return true;
+  if (question_mightabout_picture(section.question) && (all_urls() || mostly_pics()))
+    return true;
+  if (all_urls() && all_pics())
+    return true;
   return false;
 }
 
@@ -268,7 +309,7 @@ function present_html_result(result_list) {
   for (let index = 0; index < result_list.length; index++) {
     const section = result_list[index]
     if (section_is_picture(section)) {
-      // deal with result without picture
+      // deal with result picture
       const c = (i,a) => {return a.slice(0,i).concat(a.slice(i+1))}
       draw_pictures(section)
       generate_html_result(c(index, result_list))

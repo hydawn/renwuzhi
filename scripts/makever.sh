@@ -18,5 +18,6 @@ grep -v renwuzhi_contained."$ver".html md5sums.txt > md5sums.txt~
 
 rm md5sums.txt~
 
+echo "# $(date -Isec)" >> md5sums.txt
 md5sum renwuzhi_contained."$ver".html >> md5sums.txt
 #md5sum renwuzhi_cdn."$ver".html >> md5sums.txt
