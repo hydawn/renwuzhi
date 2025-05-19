@@ -10,7 +10,7 @@ sbox.addEventListener('click', () => applyHideHelp());
 // hide all help
 document.addEventListener('DOMContentLoaded', () => {
   applyHideHelp();
-  const observer = new MutationObserver(() => { console.log('dom changes on body observed!'); applyHideHelp(); });
+  const observer = new MutationObserver(() => { applyHideHelp(); });
   observer.observe(document.body, { childList: true, subtree: true });
 });
 // document.addEventListener('DOMContentChanged', () => applyHideHelp());

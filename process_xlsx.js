@@ -8,18 +8,18 @@ var select_format_full_choice = true;
 
 function setHTML(id, html) {
   const element = document.getElementById(id)
-  if (typeof element !== "null")
+  if (element !== null)
     element.innerHTML = html
   else
-    alert(`${id} not found! ${typeof element}`)
+    alert(`${id} not found! ${typeof element} ${element}`)
 }
 
 function setText(id, text) {
   const element = document.getElementById(id)
-  if (typeof element !== "null")
+  if (element !== null)
     element.innerText = text;
   else
-    alert(`${id} not found! ${typeof element}`)
+    alert(`${id} not found! ${typeof element} ${element}`)
 }
 
 // on xlsx file load
@@ -212,12 +212,12 @@ function section_is_picture(section) {
 function setup_rich_reverse() {
   const rich_button = document.getElementById('reverse-color-button');
   const rich_result = document.getElementById('rich_text_result');
-  if (typeof rich_button == "undefined") {
-    console.log('rich button component is undefined');
+  if (rich_button == "null") {
+    console.log('rich button component is null');
     return;
   }
-  if (typeof rich_result == "undefined") {
-    console.log('rich result component is undefined');
+  if (rich_result == "null") {
+    console.log('rich result component is null');
     return;
   }
   rich_button.addEventListener('click', () => {
@@ -358,7 +358,8 @@ function after_select_question_column_select_format_prompt(raw_data, user_name_l
   }
   // hidden = choices.slice(1).map(i => `<div type="magic_type_seEx" style="hidden">${i}</div>`)
   html_selector(
-    '<h3>选择输出姓名格式</h3>' + html_prompt_list.join('<br>'),
+    '选择输出姓名格式',
+    html_prompt_list.join('<br>'),
     choices.map(i => i + '<br>'),
     default_choice,
     'html_selector_single_select_onclick',
@@ -377,7 +378,7 @@ function after_select_question_column_select_format_prompt(raw_data, user_name_l
     if (choices.length == 1 || index_checked[0] != choices.length - 1) {
       name_format_string = choices[index_checked[0]]
     } else {
-      var customInput = document.getElementById('customInput');
+      const customInput = document.getElementById('customInput');
       console.log(`customInput is ${customInput.value}`)
       name_format_string = customInput.value
     }
@@ -415,9 +416,12 @@ function after_select_question_column_start_transposition(raw_data, user_name_li
     '推荐大家检查一下转换后的文字，防bug',
   ]
   // clear the last list
-  document.getElementById('html_selector_list').innerHTML = '';
-  document.getElementById('html_selector_prompt').innerHTML = '<h3>转换结果</h3>' + epilog_list.join('<br>');
-  document.getElementById('rich_text_tutorial').style.display = 'block';
+  hideElement('html_selector_list')
+  setText('prompt_title', '转换结果')
+  setHTML('prompt_body', epilog_list.join('<br>'))
+  showElement('rich_text_tutorial')
+  // document.getElementById().style.display = 'block';
+  setText('main-title', '转换完成！')
 }
 
 function after_name_column_select_question_column(raw_data, index_checked) {
@@ -448,7 +452,8 @@ function after_name_column_select_question_column(raw_data, index_checked) {
   ]
 
   html_selector(
-    '<h3>选择转换问题</h3>' + html_prompt_list.join('<br>'),
+    '选择转换问题',
+    html_prompt_list.join('<br>'),
     raw_data[0],
     Array.from({ length: raw_data[0].length }, (_, index) => index),
     '',
@@ -500,7 +505,7 @@ async function process_xlsx_workbook(raw_data) {
   console.log(raw_data[0])
   if (0 == raw_data.length)
     return;
-  document.getElementById('import_file_details').style.display = 'none'
+  hideElement('import_file_details')
 
   const useless_header = ["序号", "提交答卷时间", "所用时间", "来源", "来源详情", "来自IP"]
   remove_useless_columns(raw_data, useless_header); // oh, pass by reference
@@ -517,7 +522,8 @@ async function process_xlsx_workbook(raw_data) {
     after_name_column_select_question_column(raw_data, index_checked);
   }
   html_selector(
-    '<h3>选择姓名列</h3>' + html_prompt_list.join('<br>'),
+    '选择姓名列',
+    html_prompt_list.join('<br>'),
     raw_data[0], default_choice, '', on_submit
   );
 }
@@ -544,7 +550,7 @@ function remove_useless_columns(raw_data, useless_header) {
 }
 
 // might be a stupid choice to insert function names
-function present_choices(html_prompt, array_option, default_checked_index, on_click_func_name) {
+function present_choices(prompt_title, prompt_body, array_option, default_checked_index, on_click_func_name) {
   var prompt_list = ['<button id="checkButton">确定/下一步</button><br>']
   for (let i = 0; i < array_option.length; i++) {
     const checked = default_checked_index.includes(i) ? 'checked' : '';
@@ -559,20 +565,21 @@ function present_choices(html_prompt, array_option, default_checked_index, on_cl
   }
   prompt_list.push('<br>')
   // prompt_list.push('</form>')
-  document.getElementById('html_selector_prompt').innerHTML = html_prompt + '<br/>';
-  document.getElementById('html_selector_list').innerHTML = prompt_list.join('\n');
+  setHTML('prompt_title', prompt_title)
+  setHTML('prompt_body', prompt_body)
+  setHTML('html_selector_list', prompt_list.join('\n'))
 }
 
 // return a array if index telling me which element is selected,
 // don't return element themselves, return index
-function html_selector(html_prompt, array_option, default_checked_index, on_click_func_name, on_submit) {
+function html_selector(prompt_title, prompt_body, array_option, default_checked_index, on_click_func_name, on_submit) {
   // however, in through mode, just went all the way through!
   if (through_mode()) {
     on_submit(default_checked_index);
     return;
   }
 
-  present_choices(html_prompt, array_option, default_checked_index, on_click_func_name)
+  present_choices(prompt_title, prompt_body, array_option, default_checked_index, on_click_func_name)
 
   const checkboxes = document.querySelectorAll('input[type="checkbox"][name="html_selector_options"]');
   const checkButton = document.getElementById("checkButton");

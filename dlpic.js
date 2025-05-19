@@ -40,18 +40,24 @@ async function downloadImagesAsZip(did, onLoad) {
 
   // Select all image elements
   const images = document.querySelectorAll('.gallery img');
+  const total_image = images.length;
+  let bar = initProgressingBar(total_image, "progressing-bar");
 
   // Loop through all images and add them to the ZIP
   let imagePromises = Array.from(images).map(async (img, index) => {
     const imgUrl = img.src; // Image URL
     const fileName = `${sanitizeFilename(img.name)}-${index + 1}.${getSuffix(imgUrl)}`; // Set file name
 
+    function zipIt(blob) {
+      bar.more();
+      zip.file(fileName, blob); // Add the image blob to the ZIP
+    }
+
     // Fetch and add the image to the ZIP, skip if already loaded
     if (img.complete && img.naturalWidth > 0) {
-      zip.file(fileName, await getImageBlobFromImg(img, getSuffix(imgUrl))); // Add the image blob to the ZIP
+      zipIt(await getImageBlobFromImg(img, getSuffix(imgUrl)));
     } else {
-      const blob = await fetch(imgUrl).then(response => response.blob());
-      zip.file(fileName, blob); // Add the image blob to the ZIP
+      zipIt(await fetch(imgUrl).then(response => response.blob()));
     }
   });
 
@@ -79,10 +85,10 @@ async function downloadImagesAsZip(did, onLoad) {
 function handleClickDownloadImage() {
   hideElement('hit_download_images_button')
   showElement('loading-from-image')
-  setTimeout(() => {
-    downloadImagesAsZip('hit_download_images', () => {
-      hideElement('loading-from-image')
-      showElement('hit_download_links')
-    })
-  }, 2000);
+  // setTimeout(() => {
+  downloadImagesAsZip('hit_download_images', () => {
+    hideElement('loading-from-image')
+    showElement('hit_download_links')
+  })
+  // }, 2000);
 }

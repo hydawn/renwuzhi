@@ -19,12 +19,14 @@ limitations under the License.
     <meta charset="utf-8">
     <script charset="utf-8">
       const email = "aulanris@outlook.com";
+      // TODO: use aerror everywhere
       function aerror(msg) {
         alert(msg + `恭喜你发现了bug。如果你有空可以把你怎么发线它的告诉我${email}。不胜感激。`);
       }
     </script>
-    <title>人物志转换 v0.1.2 2024-10-17 12:53</title>
+    <title>人物志转换 v0.1.3 2024-10-23 19:56</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="css/progressing-bar.css" type="text/css" media="all">
     <link rel="stylesheet" href="css/loading-dot.css" type="text/css" media="all">
     <link rel="stylesheet" href="css/renwuzhi.css" type="text/css" media="all">
   </head>
@@ -53,7 +55,7 @@ limitations under the License.
 
       <br>
 
-      <h2>开始转换！</h2>
+      <h2 id="main-title">开始转换！</h2>
       <div class="content">
         <div class="input" id="import_file_details">
           <div class="help hide">
@@ -86,8 +88,12 @@ limitations under the License.
           </details>
         </div>
 
-        <div id="html_selector_prompt" class="help hide"></div>
+        <div>
+          <h3 id="prompt_title"></h3>
+          <div id="prompt_body" class="help hide"></div>
+        </div>
         <div id="html_selector_list"></div>
+
         <div class="trans-result">
           <div id="picture_section" class="hide">
             <div class="download-picture-section">
@@ -100,6 +106,7 @@ limitations under the License.
                   <span class="loading-dot"></span>
                 </span>
                 （可能要下个半分钟吧
+                <span id="progressing-bar"></span>
               </span>
               <div id="hit_download_links" class="hide">
                 下载成功！
@@ -117,12 +124,12 @@ limitations under the License.
             </details>
           </div>
           <div id="text_section" class="hide">
-            <details open>
-              <summary><b>转换结果</b></summary>
+            <details>
+              <summary><b>转换结果（点击展开）</b></summary>
               <div id="pure_text_result"></div>
             </details>
             <details>
-              <summary><b>转换结果 -- 富文本</b></summary>
+              <summary><b>转换结果 -- 富文本 （点击展开）</b></summary>
               <input type="checkbox" id="reverse-color-button" checked>反色</input> -- 秀米中反选“粘贴时清除格式”用于登协模板
               <div id="rich_text_result" class="color-reversed">
               </div>
@@ -132,11 +139,12 @@ limitations under the License.
 
           <!-- I put the script here is for them to load before a 32K picture is loaded -->
           <script src="loadfile.js"></script>
+          <script src="progressing_bar.js"></script>
           <script src="dlpic.js"></script>
           <script src="process_xlsx.js"></script>
           <script src="load_mode.js"></script>
 
-          <div class="rich_result" id="rich_text_tutorial" style="display:none">
+          <div class="hide" id="rich_text_tutorial">
             <details>
               <summary>如果你粘贴到秀米后发现格式不对并且不能调整，点这里</summary>
               <p>
@@ -155,11 +163,11 @@ limitations under the License.
 
       <div class="help hide">
         <h2>开始聊天！</h2>
-        <div class="content">
+        <div>
 
           <p>
           在线版 <a href="https://hikerjoy.duckdns.org/renwuzhi/">https://hikerjoy.duckdns.org/renwuzhi/</a><br/>
-          但是在线版，那天我不关心了，不维护了，就挂了。关心的可以<code>Ctrl+S</code>保存一个离线版，离线版用浏览器打开一样能用
+          但是在线版，哪天我不关心了，不维护了，就挂了。关心的可以<code>Ctrl+S</code>保存一个离线版，离线版用浏览器打开一样能用
           </p>
 
           <details>

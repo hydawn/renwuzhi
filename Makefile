@@ -5,7 +5,7 @@ publish: version
 version: mobile
 	bash scripts/makever.sh
 
-mobile: renwuzhi.html scripts/compile_mobile.py favicon.ico loadfile.js process_xlsx.js load_mode.js xlsxjs.js jszip.min.js control_mode.js
+mobile: renwuzhi.html scripts/compile_mobile.py favicon.ico loadfile.js process_xlsx.js load_mode.js xlsxjs.js jszip.min.js control_mode.js progressing_bar.js
 	#python scripts/compile_mobile.py renwuzhi.html cdn
 	python scripts/compile_mobile.py renwuzhi.html contained
 

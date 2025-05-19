@@ -1,0 +1,5 @@
+#progressing-bar {
+  /* so that = and . are of the same width */
+  font-family: monospace;
+  font-size: 16px;
+}
