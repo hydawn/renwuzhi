@@ -517,7 +517,10 @@ function findMaxLength(table) {
 }
 
 function checkTableSquare(table) {
-  const len = findMaxLength(table);
+  // 如果length是0,那么确实是square,不过这里不讨论数学问题，反正回答否就是了
+  if (table.length == 0)
+    return false;
+  const len = table[0].length;
   for (const row of table)
     if (row.length != len)
       return false;
