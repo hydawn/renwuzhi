@@ -529,7 +529,7 @@ function preprocess_table(table) {
   console.log(table);
   let new_table = table.filter(row => row.length > 0);
   if (!checkTableSquare(new_table)) {
-    alert("xlsx格式错误：行宽度不同一。最好不要改动xlsx文件，直接上传这里");
+    alert("xlsx格式错误：行宽度不统一。最好不要改动xlsx文件，直接上传这里");
     return [];
   }
   return new_table;
