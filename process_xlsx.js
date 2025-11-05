@@ -528,6 +528,10 @@ function preprocess_table(table) {
   console.log('xlsx load completed');
   console.log(table);
   let new_table = table.filter(row => row.length > 0);
+  if (new_table.length == 0) {
+    alert("传入文件第一个表是空表");
+    return []
+  }
   if (!checkTableSquare(new_table)) {
     alert("xlsx格式错误：行宽度不统一。最好不要改动xlsx文件，直接上传这里");
     return [];
