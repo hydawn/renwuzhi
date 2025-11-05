@@ -1,4 +1,7 @@
+.PHONY: publish version mobile nginx
+
 publish: version
+	echo "doesn't matter if lad is unreachable"
 	rsync -acP dist/ lad:hikerjoy/renwuzhi/
 	ssh lad brotli -f9 hikerjoy/renwuzhi/renwuzhi_cdn.html hikerjoy/renwuzhi/renwuzhi_contained.html
 
